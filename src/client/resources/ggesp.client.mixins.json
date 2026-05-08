@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ru.arthur.ggesp.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "PlaySoundMixin",
+    "EquipmentUpdateMixin",
+    "ParticleMixin",
+    "LivingEntityRendererMixin",
+    "RenderLayerMixin",
+    "CameraMixin",
+    "FreecamPlayerMixin",
+    "FreecamEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
