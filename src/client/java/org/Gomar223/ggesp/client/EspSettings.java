@@ -1,10 +1,14 @@
-package ru.arthur.ggesp.client;
+package org.Gomar223.ggesp.client;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Set;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
-import ru.arthur.ggesp.GGESP;
+import org.Gomar223.ggesp.GGESP;
 
 public final class EspSettings {
     public static final String KEY_CATEGORY = "category." + GGESP.MOD_ID;
@@ -18,6 +22,7 @@ public final class EspSettings {
     public static boolean renderMobs = true;
     public static boolean filledBoxes = false;
     public static boolean tracers = false;
+    public static boolean friends = true;
     public static boolean nametags = true;
     public static boolean storageEsp = false;
     public static boolean ancientDebrisEsp = false;
@@ -29,8 +34,12 @@ public final class EspSettings {
     public static float green = 0.1F;
     public static float blue = 0.1F;
     public static float alpha = 0.9F;
+    public static float friendTracerRed = 0.1F;
+    public static float friendTracerGreen = 0.8F;
+    public static float friendTracerBlue = 1.0F;
     public static double lineThickness = 1.0D;
 
+    private static final Set<String> friendsList = new LinkedHashSet<>();
     private static boolean initialized;
     private static KeyBinding guiKeyBinding;
     private static KeyBinding toggleEspKeyBinding;
@@ -110,5 +119,28 @@ public final class EspSettings {
     public static InputUtil.Key getBoundToggleEspKey() {
         KeyBinding binding = getToggleEspKeyBinding();
         return binding.isUnbound() ? InputUtil.UNKNOWN_KEY : KeyBindingHelper.getBoundKeyOf(binding);
+    }
+
+    public static void addFriend(String name) {
+        String normalized = normalizeFriendName(name);
+        if (!normalized.isEmpty()) {
+            friendsList.add(normalized);
+        }
+    }
+
+    public static void removeFriend(String name) {
+        friendsList.remove(normalizeFriendName(name));
+    }
+
+    public static boolean isFriend(String name) {
+        return friends && friendsList.contains(normalizeFriendName(name));
+    }
+
+    public static Set<String> getFriends() {
+        return Collections.unmodifiableSet(friendsList);
+    }
+
+    private static String normalizeFriendName(String name) {
+        return name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
     }
 }

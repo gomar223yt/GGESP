@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client;
+package org.Gomar223.ggesp.client;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
@@ -6,7 +6,7 @@ import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.math.MathHelper;
-import ru.arthur.ggesp.GGESP;
+import org.Gomar223.ggesp.GGESP;
 
 public final class FreecamController {
     private static boolean active = false;

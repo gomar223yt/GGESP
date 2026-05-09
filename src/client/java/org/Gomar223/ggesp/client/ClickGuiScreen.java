@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client;
+package org.Gomar223.ggesp.client;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -7,11 +7,13 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 
 public class ClickGuiScreen extends Screen {
     private final Screen parent;
+    private TextFieldWidget friendNameField;
     private KeyCaptureMode captureMode = KeyCaptureMode.NONE;
 
     public ClickGuiScreen(Screen parent) {
@@ -57,13 +59,33 @@ public class ClickGuiScreen extends Screen {
         ).dimensions(right, y, width, 20).build());
         y += step;
 
+        this.addDrawableChild(ButtonWidget.builder(toggleFriendsText(), button ->
+            button.setMessage(toggleAndGet(EspSettingsToggle.FRIENDS))
+        ).dimensions(left, y, width, 20).build());
+
         this.addDrawableChild(ButtonWidget.builder(toggleNametagsText(), button ->
             button.setMessage(toggleAndGet(EspSettingsToggle.NAMETAGS))
-        ).dimensions(left, y, width, 20).build());
+        ).dimensions(right, y, width, 20).build());
+        y += step;
 
         this.addDrawableChild(ButtonWidget.builder(toggleStorageText(), button ->
             button.setMessage(toggleAndGet(EspSettingsToggle.STORAGE))
-        ).dimensions(right, y, width, 20).build());
+        ).dimensions(left, y, width, 20).build());
+
+        friendNameField = new TextFieldWidget(this.textRenderer, right, y, width, 20, Text.literal("Friend Nick"));
+        friendNameField.setMaxLength(16);
+        this.addDrawableChild(friendNameField);
+        y += step;
+
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Add Friend"), button -> {
+            EspSettings.addFriend(friendNameField.getText());
+            friendNameField.setText("");
+        }).dimensions(left, y, width, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Remove Friend"), button -> {
+            EspSettings.removeFriend(friendNameField.getText());
+            friendNameField.setText("");
+        }).dimensions(right, y, width, 20).build());
         y += step;
 
         this.addDrawableChild(ButtonWidget.builder(toggleAncientDebrisText(), button ->
@@ -188,6 +210,15 @@ public class ClickGuiScreen extends Screen {
             this.height - 50,
             0xB0B0B0
         );
+        if (!EspSettings.getFriends().isEmpty()) {
+            context.drawCenteredTextWithShadow(
+                textRenderer,
+                Text.literal("Friends: " + String.join(", ", EspSettings.getFriends())),
+                this.width / 2,
+                this.height - 62,
+                0x66D9FF
+            );
+        }
 
         if (captureMode != KeyCaptureMode.NONE) {
             String waitingText = captureMode == KeyCaptureMode.GUI
@@ -229,6 +260,10 @@ public class ClickGuiScreen extends Screen {
             case TRACERS -> {
                 EspSettings.tracers = !EspSettings.tracers;
                 yield toggleTracersText();
+            }
+            case FRIENDS -> {
+                EspSettings.friends = !EspSettings.friends;
+                yield toggleFriendsText();
             }
             case NAMETAGS -> {
                 EspSettings.nametags = !EspSettings.nametags;
@@ -279,6 +314,10 @@ public class ClickGuiScreen extends Screen {
 
     private Text toggleTracersText() {
         return Text.literal("Tracers: " + onOff(EspSettings.tracers));
+    }
+
+    private Text toggleFriendsText() {
+        return Text.literal("Friends: " + onOff(EspSettings.friends));
     }
 
     private Text toggleNametagsText() {
@@ -332,6 +371,7 @@ public class ClickGuiScreen extends Screen {
         MOBS,
         FILLED,
         TRACERS,
+        FRIENDS,
         NAMETAGS,
         ANCIENT_DEBRIS,
         STORAGE,

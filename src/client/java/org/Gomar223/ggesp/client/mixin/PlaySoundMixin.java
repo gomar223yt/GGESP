@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client.mixin;
+package org.Gomar223.ggesp.client.mixin;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.arthur.ggesp.client.GhostTracker;
+import org.Gomar223.ggesp.client.GhostTracker;
 
 @Mixin(ClientPlayNetworkHandler.class)
 public class PlaySoundMixin {

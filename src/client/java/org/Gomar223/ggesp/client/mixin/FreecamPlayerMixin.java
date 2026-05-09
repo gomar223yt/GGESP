@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client.mixin;
+package org.Gomar223.ggesp.client.mixin;
 
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.Vec3d;
@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.arthur.ggesp.client.FreecamController;
+import org.Gomar223.ggesp.client.FreecamController;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class FreecamPlayerMixin {

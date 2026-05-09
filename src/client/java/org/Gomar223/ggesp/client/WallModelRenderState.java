@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client;
+package org.Gomar223.ggesp.client;
 
 public final class WallModelRenderState {
     private static final ThreadLocal<Integer> DEPTH = ThreadLocal.withInitial(() -> 0);

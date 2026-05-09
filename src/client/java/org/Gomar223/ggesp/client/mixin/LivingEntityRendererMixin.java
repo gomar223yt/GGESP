@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client.mixin;
+package org.Gomar223.ggesp.client.mixin;
 
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import ru.arthur.ggesp.client.WallModelRenderState;
-import ru.arthur.ggesp.client.WallRenderLayers;
+import org.Gomar223.ggesp.client.WallModelRenderState;
+import org.Gomar223.ggesp.client.WallRenderLayers;
 
 @Mixin(net.minecraft.client.render.entity.LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin {

@@ -1,4 +1,4 @@
-package ru.arthur.ggesp;
+package org.Gomar223.ggesp;
 
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;

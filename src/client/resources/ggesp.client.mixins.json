@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "ru.arthur.ggesp.client.mixin",
+  "package": "org.Gomar223.ggesp.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
     "PlaySoundMixin",

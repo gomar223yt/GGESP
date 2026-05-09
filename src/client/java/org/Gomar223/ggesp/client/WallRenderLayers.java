@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client;
+package org.Gomar223.ggesp.client;
 
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;

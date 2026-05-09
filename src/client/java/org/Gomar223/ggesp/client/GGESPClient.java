@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client;
+package org.Gomar223.ggesp.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.ClientModInitializer;
@@ -35,7 +35,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import org.joml.Matrix4f;
-import ru.arthur.ggesp.GGESP;
+import org.Gomar223.ggesp.GGESP;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -349,6 +349,15 @@ public class GGESPClient implements ClientModInitializer {
 
         for (Entity entity : renderableEntities) {
             Vec3d entityPos = entity.getLerpedPos(tickDelta).add(0.0, entity.getHeight() / 2.0, 0.0);
+            float red = EspSettings.red;
+            float green = EspSettings.green;
+            float blue = EspSettings.blue;
+            if (entity instanceof AbstractClientPlayerEntity player && EspSettings.isFriend(player.getName().getString())) {
+                red = EspSettings.friendTracerRed;
+                green = EspSettings.friendTracerGreen;
+                blue = EspSettings.friendTracerBlue;
+            }
+
             float x1 = (float) (tracerStart.x - cameraPos.x);
             float y1 = (float) (tracerStart.y - cameraPos.y);
             float z1 = (float) (tracerStart.z - cameraPos.z);
@@ -357,10 +366,10 @@ public class GGESPClient implements ClientModInitializer {
             float z2 = (float) (entityPos.z - cameraPos.z);
 
             buffer.vertex(posMatrix, x1, y1, z1)
-                .color(EspSettings.red, EspSettings.green, EspSettings.blue, EspSettings.alpha)
+                .color(red, green, blue, EspSettings.alpha)
                 .normal(matrices.peek(), fnx, fny, fnz);
             buffer.vertex(posMatrix, x2, y2, z2)
-                .color(EspSettings.red, EspSettings.green, EspSettings.blue, EspSettings.alpha)
+                .color(red, green, blue, EspSettings.alpha)
                 .normal(matrices.peek(), fnx, fny, fnz);
         }
 

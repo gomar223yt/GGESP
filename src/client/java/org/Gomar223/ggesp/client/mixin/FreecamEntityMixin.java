@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client.mixin;
+package org.Gomar223.ggesp.client.mixin;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.arthur.ggesp.client.FreecamController;
+import org.Gomar223.ggesp.client.FreecamController;
 
 @Mixin(Entity.class)
 public abstract class FreecamEntityMixin {

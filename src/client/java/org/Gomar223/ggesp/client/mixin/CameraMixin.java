@@ -1,4 +1,4 @@
-package ru.arthur.ggesp.client.mixin;
+package org.Gomar223.ggesp.client.mixin;
 
 import net.minecraft.client.render.Camera;
 import net.minecraft.world.BlockView;
@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.arthur.ggesp.client.FreecamController;
+import org.Gomar223.ggesp.client.FreecamController;
 
 @Mixin(Camera.class)
 public abstract class CameraMixin {
