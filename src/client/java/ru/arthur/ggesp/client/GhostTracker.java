@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class GhostTracker {
     private static final long EXPIRE_MS = 8_000;
+    private static final int MAX_GHOSTS = 64;
 
     private static final Map<Long, GhostPosition> ghosts = new ConcurrentHashMap<>();
     private static long nextId = 0;
@@ -39,6 +40,26 @@ public final class GhostTracker {
         }
 
         ghosts.put(nextId++, new GhostPosition(new Vec3d(x, y, z), now, source));
+        if (ghosts.size() > MAX_GHOSTS) {
+            removeOldestGhost();
+        }
+    }
+
+    private static void removeOldestGhost() {
+        Long oldestId = null;
+        long oldestTimestamp = Long.MAX_VALUE;
+
+        for (Map.Entry<Long, GhostPosition> entry : ghosts.entrySet()) {
+            long timestamp = entry.getValue().timestamp;
+            if (timestamp < oldestTimestamp) {
+                oldestTimestamp = timestamp;
+                oldestId = entry.getKey();
+            }
+        }
+
+        if (oldestId != null) {
+            ghosts.remove(oldestId);
+        }
     }
 
     public static void tick() {

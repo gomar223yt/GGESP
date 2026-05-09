@@ -31,11 +31,6 @@ public class ParticleMixin {
         ParticleTypes.SPLASH,
         ParticleTypes.WITCH,
         ParticleTypes.PORTAL,
-        ParticleTypes.SMOKE,
-        ParticleTypes.LARGE_SMOKE,
-        ParticleTypes.CLOUD,
-        ParticleTypes.POOF,
-        ParticleTypes.EXPLOSION,
         ParticleTypes.ITEM
     );
 

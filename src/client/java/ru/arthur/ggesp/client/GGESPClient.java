@@ -1,7 +1,6 @@
 package ru.arthur.ggesp.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.platform.GlConst;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -30,7 +29,6 @@ import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -47,6 +45,12 @@ import java.util.Set;
 
 public class GGESPClient implements ClientModInitializer {
     private static final double MAX_WALL_MODEL_DISTANCE = 64.0D;
+    private static final double MAX_ENTITY_ESP_DISTANCE = 128.0D;
+    private static final int STORAGE_SCAN_INTERVAL = 20;
+    private static final int STORAGE_SCAN_CHUNK_RADIUS = 8;
+    private static final int DEBRIS_SCAN_INTERVAL = 80;
+    private static final int DEBRIS_SCAN_CHUNK_RADIUS = 4;
+    private static final int DEBRIS_SCAN_MAX_Y = 32;
     private static final Set<BlockEntityType<?>> STORAGE_TYPES = Set.of(
         BlockEntityType.CHEST,
         BlockEntityType.TRAPPED_CHEST,
@@ -59,16 +63,17 @@ public class GGESPClient implements ClientModInitializer {
         BlockEntityType.MOB_SPAWNER
     );
 
-    private static final int DEBRIS_SCAN_INTERVAL = 40;
+    private final List<StorageEspEntry> cachedStorageEntries = new ArrayList<>();
     private final List<BlockPos> cachedDebrisPositions = new ArrayList<>();
-    private int debrisScanTimer = 0;
+    private int storageScanTimer = STORAGE_SCAN_INTERVAL;
+    private int debrisScanTimer = DEBRIS_SCAN_INTERVAL;
 
     @Override
     public void onInitializeClient() {
         EspSettings.initialize();
         ClientTickEvents.END_CLIENT_TICK.register(this::onEndTick);
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(this::render);
-        WorldRenderEvents.LAST.register(this::renderWallModelsPass);
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(this::renderWallModelsPass);
         GGESP.LOGGER.info("GGESP client renderer initialized.");
     }
 
@@ -103,13 +108,23 @@ public class GGESPClient implements ClientModInitializer {
 
         FreecamController.tickMovement();
 
+        if (EspSettings.storageEsp && client.world != null) {
+            if (++storageScanTimer >= STORAGE_SCAN_INTERVAL) {
+                storageScanTimer = 0;
+                rescanStorageEsp(client);
+            }
+        } else {
+            storageScanTimer = STORAGE_SCAN_INTERVAL;
+            cachedStorageEntries.clear();
+        }
+
         if (EspSettings.ancientDebrisEsp && client.world != null) {
             if (++debrisScanTimer >= DEBRIS_SCAN_INTERVAL) {
                 debrisScanTimer = 0;
                 rescanAncientDebris(client);
             }
         } else {
-            debrisScanTimer = 0;
+            debrisScanTimer = DEBRIS_SCAN_INTERVAL;
             cachedDebrisPositions.clear();
         }
     }
@@ -130,9 +145,11 @@ public class GGESPClient implements ClientModInitializer {
         double cameraY = camera.getPos().y;
         double cameraZ = camera.getPos().z;
         float tickDelta = client.getRenderTickCounter().getTickDelta(false);
-        List<Entity> renderableEntities = collectRenderableEntities(client);
+        List<Entity> renderableEntities = (EspSettings.boxes || EspSettings.tracers)
+            ? collectRenderableEntities(client, camera.getPos())
+            : List.of();
 
-        if (EspSettings.boxes) {
+        if (EspSettings.boxes && !renderableEntities.isEmpty()) {
             if (EspSettings.filledBoxes) {
                 renderFilledBoxes(renderableEntities, matrices, cameraX, cameraY, cameraZ, tickDelta);
             }
@@ -140,11 +157,11 @@ public class GGESPClient implements ClientModInitializer {
             renderOutlineBoxes(renderableEntities, matrices, cameraX, cameraY, cameraZ, tickDelta);
         }
 
-        if (EspSettings.tracers) {
+        if (EspSettings.tracers && !renderableEntities.isEmpty()) {
             renderTracers(renderableEntities, matrices, camera, tickDelta);
         }
 
-        if (EspSettings.nametags) {
+        if (EspSettings.nametags && EspSettings.renderPlayers) {
             renderNametags(client, matrices, context, cameraX, cameraY, cameraZ);
         }
 
@@ -363,8 +380,6 @@ public class GGESPClient implements ClientModInitializer {
         Camera camera,
         float tickDelta
     ) {
-        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        VertexConsumerProvider.Immediate consumers = client.getBufferBuilders().getEntityVertexConsumers();
         Vec3d cameraPos = camera.getPos();
         double maxWallModelDistanceSq = Math.min(
             client.options.getViewDistance().getValue() * 16.0D,
@@ -372,37 +387,44 @@ public class GGESPClient implements ClientModInitializer {
         );
         maxWallModelDistanceSq *= maxWallModelDistanceSq;
 
+        if (!EspSettings.renderPlayers) {
+            return;
+        }
+
+        List<AbstractClientPlayerEntity> invisiblePlayers = new ArrayList<>();
+        for (AbstractClientPlayerEntity player : client.world.getPlayers()) {
+            if (player == client.player || player.isSpectator() || !player.isInvisible()) {
+                continue;
+            }
+
+            Vec3d pos = player.getLerpedPos(tickDelta);
+            if (cameraPos.squaredDistanceTo(pos) <= maxWallModelDistanceSq) {
+                invisiblePlayers.add(player);
+            }
+        }
+
+        if (invisiblePlayers.isEmpty()) {
+            return;
+        }
+
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        VertexConsumerProvider.Immediate consumers = client.getBufferBuilders().getEntityVertexConsumers();
+
         dispatcher.setRenderShadows(false);
         RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(true);
-        RenderSystem.clearDepth(1.0D);
-        RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT);
-        WallModelRenderState.setCustomLayersEnabled(false);
+        RenderSystem.depthMask(false);
+        WallModelRenderState.setCustomLayersEnabled(true);
         WallModelRenderState.begin();
 
         try {
-            if (!EspSettings.renderPlayers) {
-                return;
-            }
-
-            for (AbstractClientPlayerEntity player : client.world.getPlayers()) {
-                if (player == client.player || player.isSpectator()) {
-                    continue;
-                }
-
+            for (AbstractClientPlayerEntity player : invisiblePlayers) {
                 Vec3d pos = player.getLerpedPos(tickDelta);
-                if (cameraPos.squaredDistanceTo(pos) > maxWallModelDistanceSq) {
-                    continue;
-                }
                 double x = pos.x - cameraPos.x;
                 double y = pos.y - cameraPos.y;
                 double z = pos.z - cameraPos.z;
-                boolean wasInvisible = player.isInvisible();
 
                 matrices.push();
-                if (wasInvisible) {
-                    player.setInvisible(false);
-                }
+                player.setInvisible(false);
                 try {
                     dispatcher.render(
                         player,
@@ -415,9 +437,7 @@ public class GGESPClient implements ClientModInitializer {
                         LightmapTextureManager.MAX_LIGHT_COORDINATE
                     );
                 } finally {
-                    if (wasInvisible) {
-                        player.setInvisible(true);
-                    }
+                    player.setInvisible(true);
                     matrices.pop();
                 }
             }
@@ -425,6 +445,8 @@ public class GGESPClient implements ClientModInitializer {
             consumers.draw();
         } finally {
             WallModelRenderState.end();
+            RenderSystem.depthMask(true);
+            WallModelRenderState.setCustomLayersEnabled(false);
             dispatcher.setRenderShadows(true);
         }
     }
@@ -448,10 +470,15 @@ public class GGESPClient implements ClientModInitializer {
 
             Vec3d pos = player.getPos();
             double dx = pos.x - cameraX;
-            double dy = pos.y + player.getHeight() + 0.5 - cameraY;
+            double baseDy = pos.y - cameraY;
             double dz = pos.z - cameraZ;
-            double dist = Math.sqrt(dx * dx + (pos.y - cameraY) * (pos.y - cameraY) + dz * dz);
+            double distSq = dx * dx + baseDy * baseDy + dz * dz;
+            if (distSq > MAX_ENTITY_ESP_DISTANCE * MAX_ENTITY_ESP_DISTANCE) {
+                continue;
+            }
 
+            double dist = Math.sqrt(distSq);
+            double dy = baseDy + player.getHeight() + 0.5;
             String label = player.getName().getString() + " [" + (int) dist + "m]";
 
             matrices.push();
@@ -494,52 +521,38 @@ public class GGESPClient implements ClientModInitializer {
         double cameraY,
         double cameraZ
     ) {
+        if (cachedStorageEntries.isEmpty()) return;
+
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(
             RenderLayer.getLines().getDrawMode(),
             RenderLayer.getLines().getVertexFormat()
         );
 
-        int viewDist = client.options.getViewDistance().getValue();
-        int chunkX = (int) Math.floor(cameraX) >> 4;
-        int chunkZ = (int) Math.floor(cameraZ) >> 4;
-
-        for (int cx = chunkX - viewDist; cx <= chunkX + viewDist; cx++) {
-            for (int cz = chunkZ - viewDist; cz <= chunkZ + viewDist; cz++) {
-                WorldChunk chunk = (WorldChunk) client.world.getChunkManager().getChunk(cx, cz, ChunkStatus.FULL, false);
-                if (chunk == null) continue;
-
-                Map<BlockPos, BlockEntity> blockEntities = chunk.getBlockEntities();
-                for (Map.Entry<BlockPos, BlockEntity> entry : blockEntities.entrySet()) {
-                    BlockEntity be = entry.getValue();
-                    if (!STORAGE_TYPES.contains(be.getType())) continue;
-
-                    BlockPos pos = entry.getKey();
-                    float r, g, b;
-                    if (be.getType() == BlockEntityType.CHEST || be.getType() == BlockEntityType.TRAPPED_CHEST || be.getType() == BlockEntityType.BARREL) {
-                        r = 1.0F; g = 0.8F; b = 0.0F;
-                    } else if (be.getType() == BlockEntityType.ENDER_CHEST) {
-                        r = 0.5F; g = 0.0F; b = 1.0F;
-                    } else if (be.getType() == BlockEntityType.SHULKER_BOX) {
-                        r = 1.0F; g = 0.4F; b = 0.7F;
-                    } else if (be.getType() == BlockEntityType.MOB_SPAWNER) {
-                        r = 0.2F; g = 0.8F; b = 1.0F;
-                    } else {
-                        r = 0.6F; g = 0.6F; b = 0.6F;
-                    }
-
-                    Box box = new Box(
-                        pos.getX() - cameraX,
-                        pos.getY() - cameraY,
-                        pos.getZ() - cameraZ,
-                        pos.getX() + 1 - cameraX,
-                        pos.getY() + 1 - cameraY,
-                        pos.getZ() + 1 - cameraZ
-                    );
-
-                    VertexRendering.drawBox(matrices, buffer, box, r, g, b, 0.8F);
-                }
+        double maxDistanceSq = getStorageRenderDistance(client);
+        maxDistanceSq *= maxDistanceSq;
+        for (StorageEspEntry entry : cachedStorageEntries) {
+            BlockPos pos = entry.pos();
+            double centerX = pos.getX() + 0.5D;
+            double centerY = pos.getY() + 0.5D;
+            double centerZ = pos.getZ() + 0.5D;
+            double dx = centerX - cameraX;
+            double dy = centerY - cameraY;
+            double dz = centerZ - cameraZ;
+            if (dx * dx + dy * dy + dz * dz > maxDistanceSq) {
+                continue;
             }
+
+            Box box = new Box(
+                pos.getX() - cameraX,
+                pos.getY() - cameraY,
+                pos.getZ() - cameraZ,
+                pos.getX() + 1 - cameraX,
+                pos.getY() + 1 - cameraY,
+                pos.getZ() + 1 - cameraZ
+            );
+
+            VertexRendering.drawBox(matrices, buffer, box, entry.red(), entry.green(), entry.blue(), 0.8F);
         }
 
         RenderSystem.enableBlend();
@@ -558,6 +571,45 @@ public class GGESPClient implements ClientModInitializer {
             RenderSystem.enableDepthTest();
             RenderSystem.disableBlend();
         }
+    }
+
+    private void rescanStorageEsp(MinecraftClient client) {
+        cachedStorageEntries.clear();
+        if (client.world == null || client.player == null) return;
+
+        Vec3d playerPos = client.player.getPos();
+        int radius = Math.min(client.options.getViewDistance().getValue(), STORAGE_SCAN_CHUNK_RADIUS);
+        int chunkX = (int) Math.floor(playerPos.x) >> 4;
+        int chunkZ = (int) Math.floor(playerPos.z) >> 4;
+
+        for (int cx = chunkX - radius; cx <= chunkX + radius; cx++) {
+            for (int cz = chunkZ - radius; cz <= chunkZ + radius; cz++) {
+                WorldChunk chunk = (WorldChunk) client.world.getChunkManager().getChunk(cx, cz, ChunkStatus.FULL, false);
+                if (chunk == null) continue;
+
+                Map<BlockPos, BlockEntity> blockEntities = chunk.getBlockEntities();
+                for (Map.Entry<BlockPos, BlockEntity> entry : blockEntities.entrySet()) {
+                    BlockEntityType<?> type = entry.getValue().getType();
+                    if (!STORAGE_TYPES.contains(type)) continue;
+
+                    cachedStorageEntries.add(createStorageEntry(entry.getKey(), type));
+                }
+            }
+        }
+    }
+
+    private StorageEspEntry createStorageEntry(BlockPos pos, BlockEntityType<?> type) {
+        if (type == BlockEntityType.CHEST || type == BlockEntityType.TRAPPED_CHEST || type == BlockEntityType.BARREL) {
+            return new StorageEspEntry(pos, 1.0F, 0.8F, 0.0F);
+        } else if (type == BlockEntityType.ENDER_CHEST) {
+            return new StorageEspEntry(pos, 0.5F, 0.0F, 1.0F);
+        } else if (type == BlockEntityType.SHULKER_BOX) {
+            return new StorageEspEntry(pos, 1.0F, 0.4F, 0.7F);
+        } else if (type == BlockEntityType.MOB_SPAWNER) {
+            return new StorageEspEntry(pos, 0.2F, 0.8F, 1.0F);
+        }
+
+        return new StorageEspEntry(pos, 0.6F, 0.6F, 0.6F);
     }
 
     private void renderAncientDebrisEsp(
@@ -611,7 +663,7 @@ public class GGESPClient implements ClientModInitializer {
         if (client.world == null) return;
 
         Vec3d cam = client.player != null ? client.player.getPos() : Vec3d.ZERO;
-        int viewDist = client.options.getViewDistance().getValue();
+        int viewDist = Math.min(client.options.getViewDistance().getValue(), DEBRIS_SCAN_CHUNK_RADIUS);
         int chunkX = (int) Math.floor(cam.x) >> 4;
         int chunkZ = (int) Math.floor(cam.z) >> 4;
         BlockPos.Mutable mutablePos = new BlockPos.Mutable();
@@ -624,7 +676,8 @@ public class GGESPClient implements ClientModInitializer {
                 int startX = cx << 4;
                 int startZ = cz << 4;
                 int bottomY = chunk.getBottomY();
-                int topY = bottomY + chunk.getHeight();
+                int topY = Math.min(bottomY + chunk.getHeight(), DEBRIS_SCAN_MAX_Y + 1);
+                if (topY <= bottomY) continue;
 
                 for (int x = startX; x < startX + 16; x++) {
                     for (int z = startZ; z < startZ + 16; z++) {
@@ -729,12 +782,16 @@ public class GGESPClient implements ClientModInitializer {
         }
     }
 
-    private List<Entity> collectRenderableEntities(MinecraftClient client) {
+    private List<Entity> collectRenderableEntities(MinecraftClient client, Vec3d cameraPos) {
         List<Entity> entities = new ArrayList<>();
+        double maxDistanceSq = MAX_ENTITY_ESP_DISTANCE * MAX_ENTITY_ESP_DISTANCE;
 
         if (EspSettings.renderPlayers) {
             for (AbstractClientPlayerEntity player : client.world.getPlayers()) {
                 if (player == client.player || player.isSpectator()) {
+                    continue;
+                }
+                if (cameraPos.squaredDistanceTo(player.getPos()) > maxDistanceSq) {
                     continue;
                 }
                 entities.add(player);
@@ -746,11 +803,21 @@ public class GGESPClient implements ClientModInitializer {
                 if (!(entity instanceof MobEntity mob)) {
                     continue;
                 }
+                if (cameraPos.squaredDistanceTo(mob.getPos()) > maxDistanceSq) {
+                    continue;
+                }
                 entities.add(mob);
             }
         }
 
         return entities;
+    }
+
+    private double getStorageRenderDistance(MinecraftClient client) {
+        return Math.min(client.options.getViewDistance().getValue(), STORAGE_SCAN_CHUNK_RADIUS) * 16.0D;
+    }
+
+    private record StorageEspEntry(BlockPos pos, float red, float green, float blue) {
     }
 
     private Box toCameraRelativeBox(Entity entity, double cameraX, double cameraY, double cameraZ, float tickDelta) {
