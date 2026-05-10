@@ -28,7 +28,11 @@ public abstract class CameraMixin {
         CallbackInfo ci
     ) {
         if (FreecamController.isActive()) {
-            setPos(FreecamController.getX(), FreecamController.getY(), FreecamController.getZ());
+            setPos(
+                FreecamController.getRenderX(tickDelta),
+                FreecamController.getRenderY(tickDelta),
+                FreecamController.getRenderZ(tickDelta)
+            );
             setRotation(FreecamController.getYaw(), FreecamController.getPitch());
         }
     }

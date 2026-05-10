@@ -11,7 +11,9 @@
     "RenderLayerMixin",
     "CameraMixin",
     "FreecamPlayerMixin",
-    "FreecamEntityMixin"
+    "FreecamEntityMixin",
+    "InGameOverlayRendererMixin",
+    "BackgroundRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

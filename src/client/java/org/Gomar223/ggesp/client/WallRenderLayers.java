@@ -69,13 +69,12 @@ public final class WallRenderLayers extends RenderLayer {
             .texture(new RenderPhase.Texture(texture, TriState.FALSE, false))
             .program(program)
             .transparency(transparency)
-            .depthTest(ALWAYS_DEPTH_TEST)
+            .depthTest(BIGGER_DEPTH_TEST)
             .cull(DISABLE_CULLING)
             .lightmap(ENABLE_LIGHTMAP)
             .overlay(ENABLE_OVERLAY_COLOR)
-            .layering(VIEW_OFFSET_Z_LAYERING_FORWARD)
             .target(MAIN_TARGET)
-            .writeMaskState(COLOR_MASK)
+            .writeMaskState(ALL_MASK)
             .build(false);
 
         return of(name + ":" + texture, format, VertexFormat.DrawMode.QUADS, DEFAULT_BUFFER_SIZE, parameters);

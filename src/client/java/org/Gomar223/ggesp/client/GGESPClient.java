@@ -28,12 +28,15 @@ import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.world.RaycastContext;
 import org.joml.Matrix4f;
 import org.Gomar223.ggesp.GGESP;
 
@@ -46,10 +49,10 @@ import java.util.Set;
 public class GGESPClient implements ClientModInitializer {
     private static final double MAX_WALL_MODEL_DISTANCE = 64.0D;
     private static final double MAX_ENTITY_ESP_DISTANCE = 128.0D;
-    private static final int STORAGE_SCAN_INTERVAL = 20;
-    private static final int STORAGE_SCAN_CHUNK_RADIUS = 8;
-    private static final int DEBRIS_SCAN_INTERVAL = 80;
-    private static final int DEBRIS_SCAN_CHUNK_RADIUS = 4;
+    private static final int STORAGE_SCAN_INTERVAL = 60;
+    private static final int STORAGE_SCAN_CHUNK_RADIUS = 4;
+    private static final int DEBRIS_SCAN_INTERVAL = 200;
+    private static final int DEBRIS_SCAN_CHUNK_RADIUS = 2;
     private static final int DEBRIS_SCAN_MAX_Y = 32;
     private static final Set<BlockEntityType<?>> STORAGE_TYPES = Set.of(
         BlockEntityType.CHEST,
@@ -73,7 +76,7 @@ public class GGESPClient implements ClientModInitializer {
         EspSettings.initialize();
         ClientTickEvents.END_CLIENT_TICK.register(this::onEndTick);
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(this::render);
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(this::renderWallModelsPass);
+        WorldRenderEvents.LAST.register(this::renderWallModelsPass);
         GGESP.LOGGER.info("GGESP client renderer initialized.");
     }
 
@@ -95,6 +98,7 @@ public class GGESPClient implements ClientModInitializer {
 
         while (EspSettings.getToggleEspKeyBinding().wasPressed()) {
             EspSettings.espEnabled = !EspSettings.espEnabled;
+            EspSettings.saveConfig();
             GGESP.LOGGER.info("ESP toggled: {}", EspSettings.espEnabled);
         }
 
@@ -107,6 +111,10 @@ public class GGESPClient implements ClientModInitializer {
         }
 
         FreecamController.tickMovement();
+
+        if (EspSettings.espEnabled && EspSettings.wallModels && EspSettings.renderPlayers && client.world != null) {
+            revealInvisiblePlayers(client);
+        }
 
         if (EspSettings.storageEsp && client.world != null) {
             if (++storageScanTimer >= STORAGE_SCAN_INTERVAL) {
@@ -129,6 +137,16 @@ public class GGESPClient implements ClientModInitializer {
         }
     }
 
+    private void revealInvisiblePlayers(MinecraftClient client) {
+        for (AbstractClientPlayerEntity player : client.world.getPlayers()) {
+            if (player == client.player || player.isSpectator() || !player.isInvisible()) {
+                continue;
+            }
+
+            player.setInvisible(false);
+        }
+    }
+
     private void render(WorldRenderContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null || !EspSettings.espEnabled) {
@@ -145,8 +163,12 @@ public class GGESPClient implements ClientModInitializer {
         double cameraY = camera.getPos().y;
         double cameraZ = camera.getPos().z;
         float tickDelta = client.getRenderTickCounter().getTickDelta(false);
-        List<Entity> renderableEntities = (EspSettings.boxes || EspSettings.tracers)
+        boolean friendTracersEnabled = EspSettings.hasEnabledFriendTracers();
+        List<Entity> renderableEntities = (EspSettings.boxes || EspSettings.tracers || friendTracersEnabled)
             ? collectRenderableEntities(client, camera.getPos())
+            : List.of();
+        List<ItemEntity> renderableItems = EspSettings.itemEsp
+            ? collectRenderableItems(client, camera.getPos())
             : List.of();
 
         if (EspSettings.boxes && !renderableEntities.isEmpty()) {
@@ -157,7 +179,7 @@ public class GGESPClient implements ClientModInitializer {
             renderOutlineBoxes(renderableEntities, matrices, cameraX, cameraY, cameraZ, tickDelta);
         }
 
-        if (EspSettings.tracers && !renderableEntities.isEmpty()) {
+        if ((EspSettings.tracers || friendTracersEnabled) && !renderableEntities.isEmpty()) {
             renderTracers(renderableEntities, matrices, camera, tickDelta);
         }
 
@@ -167,6 +189,10 @@ public class GGESPClient implements ClientModInitializer {
 
         if (EspSettings.storageEsp) {
             renderStorageEsp(client, matrices, cameraX, cameraY, cameraZ);
+        }
+
+        if (EspSettings.itemEsp && !renderableItems.isEmpty()) {
+            renderItemEsp(renderableItems, matrices, cameraX, cameraY, cameraZ, tickDelta);
         }
 
         if (EspSettings.ancientDebrisEsp) {
@@ -352,10 +378,18 @@ public class GGESPClient implements ClientModInitializer {
             float red = EspSettings.red;
             float green = EspSettings.green;
             float blue = EspSettings.blue;
-            if (entity instanceof AbstractClientPlayerEntity player && EspSettings.isFriend(player.getName().getString())) {
-                red = EspSettings.friendTracerRed;
-                green = EspSettings.friendTracerGreen;
-                blue = EspSettings.friendTracerBlue;
+            boolean friend = entity instanceof AbstractClientPlayerEntity player && EspSettings.isFriend(player.getName().getString());
+            if (friend) {
+                String friendName = entity.getName().getString();
+                if (!EspSettings.areFriendTracersEnabled(friendName)) {
+                    continue;
+                }
+
+                red = EspSettings.getFriendTracerRed(friendName);
+                green = EspSettings.getFriendTracerGreen(friendName);
+                blue = EspSettings.getFriendTracerBlue(friendName);
+            } else if (!EspSettings.tracers) {
+                continue;
             }
 
             float x1 = (float) (tracerStart.x - cameraPos.x);
@@ -400,19 +434,20 @@ public class GGESPClient implements ClientModInitializer {
             return;
         }
 
-        List<AbstractClientPlayerEntity> invisiblePlayers = new ArrayList<>();
+        List<AbstractClientPlayerEntity> players = new ArrayList<>();
         for (AbstractClientPlayerEntity player : client.world.getPlayers()) {
-            if (player == client.player || player.isSpectator() || !player.isInvisible()) {
+            if (player == client.player || player.isSpectator()) {
                 continue;
             }
 
             Vec3d pos = player.getLerpedPos(tickDelta);
-            if (cameraPos.squaredDistanceTo(pos) <= maxWallModelDistanceSq) {
-                invisiblePlayers.add(player);
+            if (cameraPos.squaredDistanceTo(pos) <= maxWallModelDistanceSq
+                && isOccluded(client, cameraPos, player, tickDelta)) {
+                players.add(player);
             }
         }
 
-        if (invisiblePlayers.isEmpty()) {
+        if (players.isEmpty()) {
             return;
         }
 
@@ -421,32 +456,37 @@ public class GGESPClient implements ClientModInitializer {
 
         dispatcher.setRenderShadows(false);
         RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(false);
+        RenderSystem.depthMask(true);
         WallModelRenderState.setCustomLayersEnabled(true);
         WallModelRenderState.begin();
 
         try {
-            for (AbstractClientPlayerEntity player : invisiblePlayers) {
+            for (AbstractClientPlayerEntity player : players) {
                 Vec3d pos = player.getLerpedPos(tickDelta);
                 double x = pos.x - cameraPos.x;
                 double y = pos.y - cameraPos.y;
                 double z = pos.z - cameraPos.z;
+                boolean wasInvisible = player.isInvisible();
 
                 matrices.push();
-                player.setInvisible(false);
+                if (wasInvisible) {
+                    player.setInvisible(false);
+                }
                 try {
                     dispatcher.render(
                         player,
                         x,
                         y,
                         z,
-                        player.lerpYaw(tickDelta),
+                        tickDelta,
                         matrices,
                         consumers,
                         LightmapTextureManager.MAX_LIGHT_COORDINATE
                     );
                 } finally {
-                    player.setInvisible(true);
+                    if (wasInvisible) {
+                        player.setInvisible(true);
+                    }
                     matrices.pop();
                 }
             }
@@ -458,6 +498,32 @@ public class GGESPClient implements ClientModInitializer {
             WallModelRenderState.setCustomLayersEnabled(false);
             dispatcher.setRenderShadows(true);
         }
+    }
+
+    private boolean isOccluded(MinecraftClient client, Vec3d cameraPos, AbstractClientPlayerEntity player, float tickDelta) {
+        Vec3d pos = player.getLerpedPos(tickDelta);
+        double halfWidth = player.getWidth() * 0.5D;
+        double height = player.getHeight();
+
+        return isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.5D, 0.0D))
+            || isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.9D, 0.0D))
+            || isRayBlocked(client, cameraPos, pos.add(halfWidth, height * 0.5D, 0.0D))
+            || isRayBlocked(client, cameraPos, pos.add(-halfWidth, height * 0.5D, 0.0D))
+            || isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.5D, halfWidth))
+            || isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.5D, -halfWidth));
+    }
+
+    private boolean isRayBlocked(MinecraftClient client, Vec3d from, Vec3d to) {
+        HitResult hit = client.world.raycast(new RaycastContext(
+            from,
+            to,
+            RaycastContext.ShapeType.COLLIDER,
+            RaycastContext.FluidHandling.NONE,
+            client.player
+        ));
+
+        return hit.getType() != HitResult.Type.MISS
+            && from.squaredDistanceTo(hit.getPos()) < from.squaredDistanceTo(to);
     }
 
     private void renderNametags(
@@ -569,6 +635,43 @@ public class GGESPClient implements ClientModInitializer {
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.lineWidth(2.0F);
+        try (BuiltBuffer builtBuffer = buffer.endNullable()) {
+            if (builtBuffer != null) {
+                RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
+                BufferRenderer.drawWithGlobalProgram(builtBuffer);
+            }
+        } finally {
+            RenderSystem.lineWidth(1.0F);
+            RenderSystem.depthMask(true);
+            RenderSystem.enableDepthTest();
+            RenderSystem.disableBlend();
+        }
+    }
+
+    private void renderItemEsp(
+        List<ItemEntity> items,
+        MatrixStack matrices,
+        double cameraX,
+        double cameraY,
+        double cameraZ,
+        float tickDelta
+    ) {
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(
+            RenderLayer.getLines().getDrawMode(),
+            RenderLayer.getLines().getVertexFormat()
+        );
+
+        for (ItemEntity item : items) {
+            Box box = toCameraRelativeBox(item, cameraX, cameraY, cameraZ, tickDelta).expand(0.03D);
+            VertexRendering.drawBox(matrices, buffer, box, 0.2F, 1.0F, 0.2F, 0.9F);
+        }
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.lineWidth((float) EspSettings.lineThickness);
         try (BuiltBuffer builtBuffer = buffer.endNullable()) {
             if (builtBuffer != null) {
                 RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
@@ -820,6 +923,23 @@ public class GGESPClient implements ClientModInitializer {
         }
 
         return entities;
+    }
+
+    private List<ItemEntity> collectRenderableItems(MinecraftClient client, Vec3d cameraPos) {
+        List<ItemEntity> items = new ArrayList<>();
+        double maxDistanceSq = MAX_ENTITY_ESP_DISTANCE * MAX_ENTITY_ESP_DISTANCE;
+
+        for (Entity entity : client.world.getEntities()) {
+            if (!(entity instanceof ItemEntity item)) {
+                continue;
+            }
+            if (cameraPos.squaredDistanceTo(item.getPos()) > maxDistanceSq) {
+                continue;
+            }
+            items.add(item);
+        }
+
+        return items;
     }
 
     private double getStorageRenderDistance(MinecraftClient client) {

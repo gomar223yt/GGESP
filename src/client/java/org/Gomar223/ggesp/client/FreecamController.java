@@ -11,6 +11,9 @@ import org.Gomar223.ggesp.GGESP;
 public final class FreecamController {
     private static boolean active = false;
     private static double posX, posY, posZ;
+    private static double prevPosX, prevPosY, prevPosZ;
+    private static double anchorX, anchorY, anchorZ;
+    private static float anchorYaw, anchorPitch;
     private static float yaw, pitch;
 
     private static final double BASE_SPEED = 0.5;
@@ -33,6 +36,18 @@ public final class FreecamController {
 
     public static double getZ() {
         return posZ;
+    }
+
+    public static double getRenderX(float tickDelta) {
+        return MathHelper.lerp(tickDelta, prevPosX, posX);
+    }
+
+    public static double getRenderY(float tickDelta) {
+        return MathHelper.lerp(tickDelta, prevPosY, posY);
+    }
+
+    public static double getRenderZ(float tickDelta) {
+        return MathHelper.lerp(tickDelta, prevPosZ, posZ);
     }
 
     public static float getYaw() {
@@ -60,14 +75,30 @@ public final class FreecamController {
         posX = client.player.getX();
         posY = client.player.getEyeY();
         posZ = client.player.getZ();
+        prevPosX = posX;
+        prevPosY = posY;
+        prevPosZ = posZ;
+        anchorX = client.player.getX();
+        anchorY = client.player.getY();
+        anchorZ = client.player.getZ();
+        anchorYaw = client.player.getYaw();
+        anchorPitch = client.player.getPitch();
         yaw = client.player.getYaw();
         pitch = client.player.getPitch();
 
         active = true;
+        syncClientPlayerToFreecam();
         GGESP.LOGGER.info("Freecam enabled at [{}, {}, {}]", (int) posX, (int) posY, (int) posZ);
     }
 
     public static void disable() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null) {
+            client.player.setPosition(anchorX, anchorY, anchorZ);
+            client.player.setYaw(anchorYaw);
+            client.player.setPitch(anchorPitch);
+        }
+
         active = false;
         GGESP.LOGGER.info("Freecam disabled");
     }
@@ -91,7 +122,16 @@ public final class FreecamController {
         }
 
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.currentScreen != null) {
+        if (client.player == null) {
+            return;
+        }
+
+        prevPosX = posX;
+        prevPosY = posY;
+        prevPosZ = posZ;
+
+        if (client.currentScreen != null) {
+            syncClientPlayerToFreecam();
             return;
         }
 
@@ -109,24 +149,39 @@ public final class FreecamController {
         if (isKeyDown(window, options.jumpKey)) vertical += 1;
         if (isKeyDown(window, options.sneakKey)) vertical -= 1;
 
-        if (forward == 0 && strafe == 0 && vertical == 0) {
+        if (forward != 0 || strafe != 0 || vertical != 0) {
+            double speed = BASE_SPEED;
+            if (isKeyDown(window, options.sprintKey)) {
+                speed *= SPRINT_MULTIPLIER;
+            }
+
+            double yawRad = Math.toRadians(yaw);
+            double forwardX = -Math.sin(yawRad);
+            double forwardZ = Math.cos(yawRad);
+            double strafeX = Math.cos(yawRad);
+            double strafeZ = Math.sin(yawRad);
+
+            posX += (forward * forwardX + strafe * strafeX) * speed;
+            posY += vertical * speed;
+            posZ += (forward * forwardZ + strafe * strafeZ) * speed;
+        }
+
+        syncClientPlayerToFreecam();
+    }
+
+    public static void syncClientPlayerToFreecam() {
+        if (!active) {
             return;
         }
 
-        double speed = BASE_SPEED;
-        if (isKeyDown(window, options.sprintKey)) {
-            speed *= SPRINT_MULTIPLIER;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null) {
+            return;
         }
 
-        double yawRad = Math.toRadians(yaw);
-        double forwardX = -Math.sin(yawRad);
-        double forwardZ = Math.cos(yawRad);
-        double strafeX = Math.cos(yawRad);
-        double strafeZ = Math.sin(yawRad);
-
-        posX += (forward * forwardX + strafe * strafeX) * speed;
-        posY += vertical * speed;
-        posZ += (forward * forwardZ + strafe * strafeZ) * speed;
+        client.player.setPosition(posX, posY - client.player.getEyeHeight(client.player.getPose()), posZ);
+        client.player.setYaw(yaw);
+        client.player.setPitch(pitch);
     }
 
     private static boolean isKeyDown(long window, KeyBinding binding) {

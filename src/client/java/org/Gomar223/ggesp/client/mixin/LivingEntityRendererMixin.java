@@ -3,6 +3,7 @@ package org.Gomar223.ggesp.client.mixin;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -10,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.Gomar223.ggesp.client.EspSettings;
 import org.Gomar223.ggesp.client.WallModelRenderState;
 import org.Gomar223.ggesp.client.WallRenderLayers;
 
@@ -28,7 +30,8 @@ public abstract class LivingEntityRendererMixin {
         float tickDelta,
         CallbackInfo ci
     ) {
-        if (WallModelRenderState.isActive()) {
+        if (WallModelRenderState.isActive()
+            || (EspSettings.espEnabled && EspSettings.wallModels && EspSettings.renderPlayers && entity instanceof PlayerEntity)) {
             state.invisibleToPlayer = false;
         }
     }

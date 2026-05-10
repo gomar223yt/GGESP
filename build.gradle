@@ -11,6 +11,24 @@ base {
 }
 
 repositories {
+    maven {
+        name = "LocalPatchedMods"
+        url = uri("local-maven")
+    }
+    maven {
+        name = "AlignedCookie88"
+        url = "https://repo.alignedcookie88.com/repository/maven-public/"
+        content {
+            includeGroup "xyz.breadloaf.imguimc"
+        }
+    }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 loom {
@@ -24,19 +42,31 @@ loom {
     }
 }
 
+def patchedImguiMc = "org.gomar223.libs:imgui-mc-patched:${project.imguimc_patch_version}-loader-${project.loader_version}"
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    modImplementation patchedImguiMc
+    include patchedImguiMc
 }
 
 processResources {
     inputs.property "version", project.version
+    inputs.property "imguimc_version", project.imguimc_patch_version
 
     filesMatching("fabric.mod.json") {
-        expand "version": inputs.properties.version
+        expand "version": inputs.properties.version,
+                "imguimc_version": inputs.properties.imguimc_version
     }
+}
+
+processClientResources {
+    from("Inter/static/Inter_18pt-Regular.ttf")
+    from("clickGUI/clickGUI-icons.png")
+    from("clickGUI/friends-icons.png")
 }
 
 tasks.withType(JavaCompile).configureEach {

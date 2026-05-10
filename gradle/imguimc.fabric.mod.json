@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "imguimc",
+  "version": "1.21.4-1.1.1-ggesp-idlefast",
+  "name": "imgui-mc",
+  "description": "Bundled imgui-mc library for GGESP.",
+  "authors": [
+    "mjwells2002 (Original author)",
+    "AlignedCookie88 (Port to 1.20.4 and above, Additional features and fixes)"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "mixins": [
+    "imguimc.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.9",
+    "fabric": "*",
+    "minecraft": "1.21.4"
+  }
+}

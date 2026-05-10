@@ -1,0 +1,6 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gomar223.libs</groupId>
+  <artifactId>imgui-mc-patched</artifactId>
+  <version>1.21.4-1.1.1-ggesp-idlefast-loader-0.16.9</version>
+</project>
