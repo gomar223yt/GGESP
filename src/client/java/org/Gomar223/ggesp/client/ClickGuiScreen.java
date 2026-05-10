@@ -148,8 +148,10 @@ public class ClickGuiScreen extends Screen {
 
             if (captureMode == KeyCaptureMode.GUI) {
                 EspSettings.setGuiKey(newKey);
-            } else {
+            } else if (captureMode == KeyCaptureMode.ESP_TOGGLE) {
                 EspSettings.setToggleEspKey(newKey);
+            } else if (captureMode == KeyCaptureMode.FREECAM) {
+                EspSettings.setFreecamKey(newKey);
             }
 
             captureMode = KeyCaptureMode.NONE;
@@ -280,7 +282,7 @@ public class ClickGuiScreen extends Screen {
                 new ToggleItem("Freecam", Icon.FREECAM, FreecamController::isActive, value -> FreecamController.toggle())
             );
 
-            float contentHeight = cardH + rowGap + items.size() * (cardH + rowGap) + (cardH + rowGap) * 2.0F + 5.0F * 50.0F * scale + 128.0F * scale;
+            float contentHeight = cardH + rowGap + items.size() * (cardH + rowGap) + (cardH + rowGap) * 3.0F + 5.0F * 50.0F * scale + 128.0F * scale;
             float maxScroll = Math.max(0.0F, contentHeight - viewportH);
             float mouseX = ImGui.getIO().getMousePosX();
             float mouseY = ImGui.getIO().getMousePosY();
@@ -305,6 +307,8 @@ public class ClickGuiScreen extends Screen {
             drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.GUI_KEY, "GUI Key", keyName(EspSettings.getBoundGuiKey()), KeyCaptureMode.GUI, scale);
             contentY += cardH + rowGap;
             drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.ESP_KEY, "ESP Toggle Key", keyName(EspSettings.getBoundToggleEspKey()), KeyCaptureMode.ESP_TOGGLE, scale);
+            contentY += cardH + rowGap;
+            drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.FREECAM, "Freecam Key", keyName(EspSettings.getBoundFreecamKey()), KeyCaptureMode.FREECAM, scale);
             contentY += cardH + 14.0F * scale;
 
             drawSlider(draw, "Red", EspSettings.red, value -> EspSettings.red = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
@@ -318,7 +322,7 @@ public class ClickGuiScreen extends Screen {
             drawSlider(draw, "Line Thickness", (float) EspSettings.lineThickness, value -> EspSettings.lineThickness = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 5.0F, scale);
 
             float footerY = contentY + 82.0F * scale;
-            String footer = "GUI key: " + keyName(EspSettings.getBoundGuiKey()) + " | ESP key: " + keyName(EspSettings.getBoundToggleEspKey());
+            String footer = "GUI: " + keyName(EspSettings.getBoundGuiKey()) + " | ESP: " + keyName(EspSettings.getBoundToggleEspKey()) + " | Freecam: " + keyName(EspSettings.getBoundFreecamKey());
             drawText(draw, x + w * 0.5F - textWidth(footer) * 0.5F, footerY, rgba(132, 128, 180, 255), footer);
             draw.popClipRect();
 
@@ -824,7 +828,8 @@ public class ClickGuiScreen extends Screen {
     private enum KeyCaptureMode {
         NONE,
         GUI,
-        ESP_TOGGLE
+        ESP_TOGGLE,
+        FREECAM
     }
 
     private enum GuiPage {

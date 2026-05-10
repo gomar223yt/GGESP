@@ -129,6 +129,12 @@ public final class EspSettings {
         saveConfig();
     }
 
+    public static void setFreecamKey(InputUtil.Key key) {
+        getFreecamKeyBinding().setBoundKey(key);
+        KeyBinding.updateKeysByCode();
+        saveConfig();
+    }
+
     public static InputUtil.Key getBoundGuiKey() {
         KeyBinding binding = getGuiKeyBinding();
         return binding.isUnbound() ? InputUtil.UNKNOWN_KEY : KeyBindingHelper.getBoundKeyOf(binding);
@@ -136,6 +142,11 @@ public final class EspSettings {
 
     public static InputUtil.Key getBoundToggleEspKey() {
         KeyBinding binding = getToggleEspKeyBinding();
+        return binding.isUnbound() ? InputUtil.UNKNOWN_KEY : KeyBindingHelper.getBoundKeyOf(binding);
+    }
+
+    public static InputUtil.Key getBoundFreecamKey() {
+        KeyBinding binding = getFreecamKeyBinding();
         return binding.isUnbound() ? InputUtil.UNKNOWN_KEY : KeyBindingHelper.getBoundKeyOf(binding);
     }
 
@@ -254,6 +265,7 @@ public final class EspSettings {
         properties.setProperty("lineThickness", Double.toString(lineThickness));
         properties.setProperty("guiKey", getBoundGuiKey().getTranslationKey());
         properties.setProperty("toggleEspKey", getBoundToggleEspKey().getTranslationKey());
+        properties.setProperty("freecamKey", getBoundFreecamKey().getTranslationKey());
         properties.setProperty("friendsList", String.join(",", friendsList));
         for (String friend : friendsList) {
             FriendSettings settings = getFriendSettings(friend);
@@ -310,6 +322,7 @@ public final class EspSettings {
         lineThickness = getDouble(properties, "lineThickness", lineThickness);
         loadKey(guiKeyBinding, properties.getProperty("guiKey"));
         loadKey(toggleEspKeyBinding, properties.getProperty("toggleEspKey"));
+        loadKey(freecamKeyBinding, properties.getProperty("freecamKey"));
         KeyBinding.updateKeysByCode();
 
         friendsList.clear();
