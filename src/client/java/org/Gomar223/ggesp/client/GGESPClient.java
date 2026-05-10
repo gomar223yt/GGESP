@@ -33,6 +33,7 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
@@ -49,11 +50,14 @@ import java.util.Set;
 public class GGESPClient implements ClientModInitializer {
     private static final double MAX_WALL_MODEL_DISTANCE = 64.0D;
     private static final double MAX_ENTITY_ESP_DISTANCE = 128.0D;
-    private static final int STORAGE_SCAN_INTERVAL = 60;
+    private static final int STORAGE_SCAN_INTERVAL = 120;
     private static final int STORAGE_SCAN_CHUNK_RADIUS = 4;
-    private static final int DEBRIS_SCAN_INTERVAL = 200;
+    private static final int DEBRIS_SCAN_INTERVAL = 600;
     private static final int DEBRIS_SCAN_CHUNK_RADIUS = 2;
     private static final int DEBRIS_SCAN_MAX_Y = 32;
+    private static final int DEBRIS_CHUNKS_PER_TICK = 1;
+    private static final int ENTITY_CACHE_INTERVAL = 5;
+    private static final int WALL_MODEL_FRAME_INTERVAL = 2;
     private static final Set<BlockEntityType<?>> STORAGE_TYPES = Set.of(
         BlockEntityType.CHEST,
         BlockEntityType.TRAPPED_CHEST,
@@ -68,8 +72,16 @@ public class GGESPClient implements ClientModInitializer {
 
     private final List<StorageEspEntry> cachedStorageEntries = new ArrayList<>();
     private final List<BlockPos> cachedDebrisPositions = new ArrayList<>();
+    private final List<ChunkPos> pendingDebrisChunks = new ArrayList<>();
+    private final List<Entity> cachedRenderableEntities = new ArrayList<>();
+    private final List<ItemEntity> cachedRenderableItems = new ArrayList<>();
     private int storageScanTimer = STORAGE_SCAN_INTERVAL;
     private int debrisScanTimer = DEBRIS_SCAN_INTERVAL;
+    private int entityCacheTimer = ENTITY_CACHE_INTERVAL;
+    private int itemCacheTimer = ENTITY_CACHE_INTERVAL;
+    private int wallModelFrameTimer;
+    private int debrisScanChunkX = Integer.MIN_VALUE;
+    private int debrisScanChunkZ = Integer.MIN_VALUE;
 
     @Override
     public void onInitializeClient() {
@@ -127,13 +139,19 @@ public class GGESPClient implements ClientModInitializer {
         }
 
         if (EspSettings.ancientDebrisEsp && client.world != null) {
-            if (++debrisScanTimer >= DEBRIS_SCAN_INTERVAL) {
+            int chunkX = client.player.getBlockPos().getX() >> 4;
+            int chunkZ = client.player.getBlockPos().getZ() >> 4;
+            if (chunkX != debrisScanChunkX || chunkZ != debrisScanChunkZ || ++debrisScanTimer >= DEBRIS_SCAN_INTERVAL) {
                 debrisScanTimer = 0;
-                rescanAncientDebris(client);
+                startAncientDebrisScan(client, chunkX, chunkZ);
             }
+            scanNextDebrisChunks(client);
         } else {
             debrisScanTimer = DEBRIS_SCAN_INTERVAL;
             cachedDebrisPositions.clear();
+            pendingDebrisChunks.clear();
+            debrisScanChunkX = Integer.MIN_VALUE;
+            debrisScanChunkZ = Integer.MIN_VALUE;
         }
     }
 
@@ -165,10 +183,10 @@ public class GGESPClient implements ClientModInitializer {
         float tickDelta = client.getRenderTickCounter().getTickDelta(false);
         boolean friendTracersEnabled = EspSettings.hasEnabledFriendTracers();
         List<Entity> renderableEntities = (EspSettings.boxes || EspSettings.tracers || friendTracersEnabled)
-            ? collectRenderableEntities(client, camera.getPos())
+            ? getCachedRenderableEntities(client, camera.getPos())
             : List.of();
         List<ItemEntity> renderableItems = EspSettings.itemEsp
-            ? collectRenderableItems(client, camera.getPos())
+            ? getCachedRenderableItems(client, camera.getPos())
             : List.of();
 
         if (EspSettings.boxes && !renderableEntities.isEmpty()) {
@@ -209,6 +227,10 @@ public class GGESPClient implements ClientModInitializer {
         if (client.world == null || client.player == null || !EspSettings.espEnabled || !EspSettings.wallModels) {
             return;
         }
+        if (++wallModelFrameTimer < WALL_MODEL_FRAME_INTERVAL) {
+            return;
+        }
+        wallModelFrameTimer = 0;
 
         MatrixStack matrices = context.matrixStack();
         Camera camera = context.camera();
@@ -250,10 +272,7 @@ public class GGESPClient implements ClientModInitializer {
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
-            RenderSystem.enableCull();
-            RenderSystem.disableBlend();
+            resetRenderState();
         }
     }
 
@@ -342,10 +361,7 @@ public class GGESPClient implements ClientModInitializer {
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
-            RenderSystem.lineWidth(1.0F);
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
-            RenderSystem.disableBlend();
+            resetRenderState();
         }
     }
 
@@ -413,7 +429,7 @@ public class GGESPClient implements ClientModInitializer {
                 RenderLayer.getLines().draw(builtBuffer);
             }
         } finally {
-            RenderSystem.lineWidth(1.0F);
+            resetRenderState();
         }
     }
 
@@ -494,23 +510,19 @@ public class GGESPClient implements ClientModInitializer {
             consumers.draw();
         } finally {
             WallModelRenderState.end();
-            RenderSystem.depthMask(true);
             WallModelRenderState.setCustomLayersEnabled(false);
             dispatcher.setRenderShadows(true);
+            resetRenderState();
         }
     }
 
     private boolean isOccluded(MinecraftClient client, Vec3d cameraPos, AbstractClientPlayerEntity player, float tickDelta) {
         Vec3d pos = player.getLerpedPos(tickDelta);
-        double halfWidth = player.getWidth() * 0.5D;
         double height = player.getHeight();
 
         return isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.5D, 0.0D))
             || isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.9D, 0.0D))
-            || isRayBlocked(client, cameraPos, pos.add(halfWidth, height * 0.5D, 0.0D))
-            || isRayBlocked(client, cameraPos, pos.add(-halfWidth, height * 0.5D, 0.0D))
-            || isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.5D, halfWidth))
-            || isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.5D, -halfWidth));
+            || isRayBlocked(client, cameraPos, pos.add(0.0D, height * 0.15D, 0.0D));
     }
 
     private boolean isRayBlocked(MinecraftClient client, Vec3d from, Vec3d to) {
@@ -641,10 +653,7 @@ public class GGESPClient implements ClientModInitializer {
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
-            RenderSystem.lineWidth(1.0F);
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
-            RenderSystem.disableBlend();
+            resetRenderState();
         }
     }
 
@@ -678,10 +687,7 @@ public class GGESPClient implements ClientModInitializer {
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
-            RenderSystem.lineWidth(1.0F);
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
-            RenderSystem.disableBlend();
+            resetRenderState();
         }
     }
 
@@ -763,42 +769,59 @@ public class GGESPClient implements ClientModInitializer {
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
-            RenderSystem.lineWidth(1.0F);
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
-            RenderSystem.disableBlend();
+            resetRenderState();
         }
     }
 
-    private void rescanAncientDebris(MinecraftClient client) {
+    private void startAncientDebrisScan(MinecraftClient client, int chunkX, int chunkZ) {
         cachedDebrisPositions.clear();
-        if (client.world == null) return;
+        pendingDebrisChunks.clear();
+        if (client.world == null) {
+            return;
+        }
 
-        Vec3d cam = client.player != null ? client.player.getPos() : Vec3d.ZERO;
         int viewDist = Math.min(client.options.getViewDistance().getValue(), DEBRIS_SCAN_CHUNK_RADIUS);
-        int chunkX = (int) Math.floor(cam.x) >> 4;
-        int chunkZ = (int) Math.floor(cam.z) >> 4;
-        BlockPos.Mutable mutablePos = new BlockPos.Mutable();
-
         for (int cx = chunkX - viewDist; cx <= chunkX + viewDist; cx++) {
             for (int cz = chunkZ - viewDist; cz <= chunkZ + viewDist; cz++) {
-                WorldChunk chunk = (WorldChunk) client.world.getChunkManager().getChunk(cx, cz, ChunkStatus.FULL, false);
-                if (chunk == null) continue;
+                pendingDebrisChunks.add(new ChunkPos(cx, cz));
+            }
+        }
+        debrisScanChunkX = chunkX;
+        debrisScanChunkZ = chunkZ;
+    }
 
-                int startX = cx << 4;
-                int startZ = cz << 4;
-                int bottomY = chunk.getBottomY();
-                int topY = Math.min(bottomY + chunk.getHeight(), DEBRIS_SCAN_MAX_Y + 1);
-                if (topY <= bottomY) continue;
+    private void scanNextDebrisChunks(MinecraftClient client) {
+        if (client.world == null || pendingDebrisChunks.isEmpty()) {
+            return;
+        }
 
-                for (int x = startX; x < startX + 16; x++) {
-                    for (int z = startZ; z < startZ + 16; z++) {
-                        for (int y = bottomY; y < topY; y++) {
-                            mutablePos.set(x, y, z);
-                            if (chunk.getBlockState(mutablePos).isOf(Blocks.ANCIENT_DEBRIS)) {
-                                cachedDebrisPositions.add(mutablePos.toImmutable());
-                            }
-                        }
+        for (int i = 0; i < DEBRIS_CHUNKS_PER_TICK && !pendingDebrisChunks.isEmpty(); i++) {
+            ChunkPos pos = pendingDebrisChunks.remove(pendingDebrisChunks.size() - 1);
+            WorldChunk chunk = (WorldChunk) client.world.getChunkManager().getChunk(pos.x, pos.z, ChunkStatus.FULL, false);
+            if (chunk == null) {
+                continue;
+            }
+
+            scanDebrisChunk(chunk, pos.x, pos.z);
+        }
+    }
+
+    private void scanDebrisChunk(WorldChunk chunk, int chunkX, int chunkZ) {
+        int startX = chunkX << 4;
+        int startZ = chunkZ << 4;
+        int bottomY = chunk.getBottomY();
+        int topY = Math.min(bottomY + chunk.getHeight(), DEBRIS_SCAN_MAX_Y + 1);
+        if (topY <= bottomY) {
+            return;
+        }
+
+        BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+        for (int x = startX; x < startX + 16; x++) {
+            for (int z = startZ; z < startZ + 16; z++) {
+                for (int y = bottomY; y < topY; y++) {
+                    mutablePos.set(x, y, z);
+                    if (chunk.getBlockState(mutablePos).isOf(Blocks.ANCIENT_DEBRIS)) {
+                        cachedDebrisPositions.add(mutablePos.toImmutable());
                     }
                 }
             }
@@ -845,7 +868,7 @@ public class GGESPClient implements ClientModInitializer {
                 RenderLayer.getLines().draw(built);
             }
         } finally {
-            RenderSystem.lineWidth(1.0F);
+            resetRenderState();
         }
 
         TextRenderer textRenderer = client.textRenderer;
@@ -894,8 +917,16 @@ public class GGESPClient implements ClientModInitializer {
         }
     }
 
-    private List<Entity> collectRenderableEntities(MinecraftClient client, Vec3d cameraPos) {
-        List<Entity> entities = new ArrayList<>();
+    private List<Entity> getCachedRenderableEntities(MinecraftClient client, Vec3d cameraPos) {
+        if (++entityCacheTimer >= ENTITY_CACHE_INTERVAL) {
+            entityCacheTimer = 0;
+            collectRenderableEntities(client, cameraPos, cachedRenderableEntities);
+        }
+        return cachedRenderableEntities;
+    }
+
+    private void collectRenderableEntities(MinecraftClient client, Vec3d cameraPos, List<Entity> entities) {
+        entities.clear();
         double maxDistanceSq = MAX_ENTITY_ESP_DISTANCE * MAX_ENTITY_ESP_DISTANCE;
 
         if (EspSettings.renderPlayers) {
@@ -921,12 +952,18 @@ public class GGESPClient implements ClientModInitializer {
                 entities.add(mob);
             }
         }
-
-        return entities;
     }
 
-    private List<ItemEntity> collectRenderableItems(MinecraftClient client, Vec3d cameraPos) {
-        List<ItemEntity> items = new ArrayList<>();
+    private List<ItemEntity> getCachedRenderableItems(MinecraftClient client, Vec3d cameraPos) {
+        if (++itemCacheTimer >= ENTITY_CACHE_INTERVAL) {
+            itemCacheTimer = 0;
+            collectRenderableItems(client, cameraPos, cachedRenderableItems);
+        }
+        return cachedRenderableItems;
+    }
+
+    private void collectRenderableItems(MinecraftClient client, Vec3d cameraPos, List<ItemEntity> items) {
+        items.clear();
         double maxDistanceSq = MAX_ENTITY_ESP_DISTANCE * MAX_ENTITY_ESP_DISTANCE;
 
         for (Entity entity : client.world.getEntities()) {
@@ -938,12 +975,19 @@ public class GGESPClient implements ClientModInitializer {
             }
             items.add(item);
         }
-
-        return items;
     }
 
     private double getStorageRenderDistance(MinecraftClient client) {
         return Math.min(client.options.getViewDistance().getValue(), STORAGE_SCAN_CHUNK_RADIUS) * 16.0D;
+    }
+
+    private static void resetRenderState() {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.lineWidth(1.0F);
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
     }
 
     private record StorageEspEntry(BlockPos pos, float red, float green, float blue) {
