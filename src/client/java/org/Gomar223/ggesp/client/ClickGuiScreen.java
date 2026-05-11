@@ -275,6 +275,7 @@ public class ClickGuiScreen extends Screen {
                 new ToggleItem("Tracers", Icon.TRACERS, () -> EspSettings.tracers, value -> EspSettings.tracers = value),
                 new ToggleItem("Nametags", Icon.NAMETAGS, () -> EspSettings.nametags, value -> EspSettings.nametags = value),
                 new ToggleItem("Storage ESP", Icon.STORAGE, () -> EspSettings.storageEsp, value -> EspSettings.storageEsp = value),
+                new ToggleItem("Storage Type Colors", Icon.STORAGE, () -> EspSettings.storageUseTypeColors, value -> EspSettings.storageUseTypeColors = value),
                 new ToggleItem("Ancient Debris", Icon.ANCIENT_DEBRIS, () -> EspSettings.ancientDebrisEsp, value -> EspSettings.ancientDebrisEsp = value),
                 new ToggleItem("Item ESP", Icon.ITEM, () -> EspSettings.itemEsp, value -> EspSettings.itemEsp = value),
                 new ToggleItem("Wall Models", Icon.WALL_MODELS, () -> EspSettings.wallModels, value -> EspSettings.wallModels = value),
@@ -282,7 +283,7 @@ public class ClickGuiScreen extends Screen {
                 new ToggleItem("Freecam", Icon.FREECAM, FreecamController::isActive, value -> FreecamController.toggle())
             );
 
-            float contentHeight = cardH + rowGap + items.size() * (cardH + rowGap) + (cardH + rowGap) * 3.0F + 5.0F * 50.0F * scale + 128.0F * scale;
+            float contentHeight = cardH + rowGap + items.size() * (cardH + rowGap) + (cardH + rowGap) * 3.0F + 10.0F * 50.0F * scale + 148.0F * scale;
             float maxScroll = Math.max(0.0F, contentHeight - viewportH);
             float mouseX = ImGui.getIO().getMousePosX();
             float mouseY = ImGui.getIO().getMousePosY();
@@ -320,6 +321,16 @@ public class ClickGuiScreen extends Screen {
             drawSlider(draw, "Alpha", EspSettings.alpha, value -> EspSettings.alpha = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
             drawSlider(draw, "Line Thickness", (float) EspSettings.lineThickness, value -> EspSettings.lineThickness = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 5.0F, scale);
+            contentY += 62.0F * scale;
+            drawSlider(draw, "Storage Red", EspSettings.storageRed, value -> EspSettings.storageRed = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            contentY += 50.0F * scale;
+            drawSlider(draw, "Storage Green", EspSettings.storageGreen, value -> EspSettings.storageGreen = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            contentY += 50.0F * scale;
+            drawSlider(draw, "Storage Blue", EspSettings.storageBlue, value -> EspSettings.storageBlue = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            contentY += 50.0F * scale;
+            drawSlider(draw, "Storage Alpha", EspSettings.storageAlpha, value -> EspSettings.storageAlpha = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            contentY += 50.0F * scale;
+            drawSlider(draw, "Storage Thickness", (float) EspSettings.storageLineThickness, value -> EspSettings.storageLineThickness = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 8.0F, scale);
 
             float footerY = contentY + 82.0F * scale;
             String footer = "GUI: " + keyName(EspSettings.getBoundGuiKey()) + " | ESP: " + keyName(EspSettings.getBoundToggleEspKey()) + " | Freecam: " + keyName(EspSettings.getBoundFreecamKey());

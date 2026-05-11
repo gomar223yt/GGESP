@@ -437,20 +437,33 @@ public class GGESPClient implements ClientModInitializer {
         float blue,
         float alpha
     ) {
-        drawLine(matrices, buffer, box.minX, box.minY, box.minZ, box.maxX, box.minY, box.minZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.maxX, box.minY, box.minZ, box.maxX, box.minY, box.maxZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.maxX, box.minY, box.maxZ, box.minX, box.minY, box.maxZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.minX, box.minY, box.maxZ, box.minX, box.minY, box.minZ, red, green, blue, alpha);
+        drawCompleteOutlineBox(matrices, buffer, box, red, green, blue, alpha, EspSettings.lineThickness);
+    }
 
-        drawLine(matrices, buffer, box.minX, box.maxY, box.minZ, box.maxX, box.maxY, box.minZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.maxX, box.maxY, box.minZ, box.maxX, box.maxY, box.maxZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.maxX, box.maxY, box.maxZ, box.minX, box.maxY, box.maxZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.minX, box.maxY, box.maxZ, box.minX, box.maxY, box.minZ, red, green, blue, alpha);
+    private void drawCompleteOutlineBox(
+        MatrixStack matrices,
+        BufferBuilder buffer,
+        Box box,
+        float red,
+        float green,
+        float blue,
+        float alpha,
+        double lineThickness
+    ) {
+        drawLine(matrices, buffer, box.minX, box.minY, box.minZ, box.maxX, box.minY, box.minZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.maxX, box.minY, box.minZ, box.maxX, box.minY, box.maxZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.maxX, box.minY, box.maxZ, box.minX, box.minY, box.maxZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.minX, box.minY, box.maxZ, box.minX, box.minY, box.minZ, red, green, blue, alpha, lineThickness);
 
-        drawLine(matrices, buffer, box.minX, box.minY, box.minZ, box.minX, box.maxY, box.minZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.maxX, box.minY, box.minZ, box.maxX, box.maxY, box.minZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.maxX, box.minY, box.maxZ, box.maxX, box.maxY, box.maxZ, red, green, blue, alpha);
-        drawLine(matrices, buffer, box.minX, box.minY, box.maxZ, box.minX, box.maxY, box.maxZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.minX, box.maxY, box.minZ, box.maxX, box.maxY, box.minZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.maxX, box.maxY, box.minZ, box.maxX, box.maxY, box.maxZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.maxX, box.maxY, box.maxZ, box.minX, box.maxY, box.maxZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.minX, box.maxY, box.maxZ, box.minX, box.maxY, box.minZ, red, green, blue, alpha, lineThickness);
+
+        drawLine(matrices, buffer, box.minX, box.minY, box.minZ, box.minX, box.maxY, box.minZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.maxX, box.minY, box.minZ, box.maxX, box.maxY, box.minZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.maxX, box.minY, box.maxZ, box.maxX, box.maxY, box.maxZ, red, green, blue, alpha, lineThickness);
+        drawLine(matrices, buffer, box.minX, box.minY, box.maxZ, box.minX, box.maxY, box.maxZ, red, green, blue, alpha, lineThickness);
     }
 
     private void drawLine(
@@ -465,7 +478,8 @@ public class GGESPClient implements ClientModInitializer {
         float red,
         float green,
         float blue,
-        float alpha
+        float alpha,
+        double lineThickness
     ) {
         double minX = Math.min(x1, x2);
         double minY = Math.min(y1, y2);
@@ -473,7 +487,7 @@ public class GGESPClient implements ClientModInitializer {
         double maxX = Math.max(x1, x2);
         double maxY = Math.max(y1, y2);
         double maxZ = Math.max(z1, z2);
-        double thickness = Math.max(0.008D, EspSettings.lineThickness * 0.006D);
+        double thickness = Math.max(0.008D, lineThickness * 0.006D);
 
         if (minX == maxX) {
             minX -= thickness;
@@ -697,7 +711,10 @@ public class GGESPClient implements ClientModInitializer {
                 pos.getZ() + 1 - cameraZ
             );
 
-            drawCompleteOutlineBox(matrices, buffer, box, entry.red(), entry.green(), entry.blue(), 0.8F);
+            float red = EspSettings.storageUseTypeColors ? entry.red() : EspSettings.storageRed;
+            float green = EspSettings.storageUseTypeColors ? entry.green() : EspSettings.storageGreen;
+            float blue = EspSettings.storageUseTypeColors ? entry.blue() : EspSettings.storageBlue;
+            drawCompleteOutlineBox(matrices, buffer, box, red, green, blue, EspSettings.storageAlpha, EspSettings.storageLineThickness);
         }
 
         RenderSystem.enableBlend();

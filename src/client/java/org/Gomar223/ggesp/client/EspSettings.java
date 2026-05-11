@@ -38,6 +38,7 @@ public final class EspSettings {
     public static boolean friends = true;
     public static boolean nametags = true;
     public static boolean storageEsp = false;
+    public static boolean storageUseTypeColors = true;
     public static boolean ancientDebrisEsp = false;
     public static boolean itemEsp = false;
     public static boolean ghostEsp = true;
@@ -51,6 +52,11 @@ public final class EspSettings {
     public static float friendTracerRed = 0.1F;
     public static float friendTracerGreen = 0.8F;
     public static float friendTracerBlue = 1.0F;
+    public static float storageRed = 1.0F;
+    public static float storageGreen = 0.78F;
+    public static float storageBlue = 0.0F;
+    public static float storageAlpha = 0.9F;
+    public static double storageLineThickness = 2.0D;
     public static double lineThickness = 1.0D;
 
     private static final Set<String> friendsList = new LinkedHashSet<>();
@@ -251,6 +257,7 @@ public final class EspSettings {
         properties.setProperty("friends", Boolean.toString(friends));
         properties.setProperty("nametags", Boolean.toString(nametags));
         properties.setProperty("storageEsp", Boolean.toString(storageEsp));
+        properties.setProperty("storageUseTypeColors", Boolean.toString(storageUseTypeColors));
         properties.setProperty("ancientDebrisEsp", Boolean.toString(ancientDebrisEsp));
         properties.setProperty("itemEsp", Boolean.toString(itemEsp));
         properties.setProperty("ghostEsp", Boolean.toString(ghostEsp));
@@ -262,6 +269,11 @@ public final class EspSettings {
         properties.setProperty("friendTracerRed", Float.toString(friendTracerRed));
         properties.setProperty("friendTracerGreen", Float.toString(friendTracerGreen));
         properties.setProperty("friendTracerBlue", Float.toString(friendTracerBlue));
+        properties.setProperty("storageRed", Float.toString(storageRed));
+        properties.setProperty("storageGreen", Float.toString(storageGreen));
+        properties.setProperty("storageBlue", Float.toString(storageBlue));
+        properties.setProperty("storageAlpha", Float.toString(storageAlpha));
+        properties.setProperty("storageLineThickness", Double.toString(storageLineThickness));
         properties.setProperty("lineThickness", Double.toString(lineThickness));
         properties.setProperty("guiKey", getBoundGuiKey().getTranslationKey());
         properties.setProperty("toggleEspKey", getBoundToggleEspKey().getTranslationKey());
@@ -308,6 +320,7 @@ public final class EspSettings {
         friends = getBoolean(properties, "friends", friends);
         nametags = getBoolean(properties, "nametags", nametags);
         storageEsp = getBoolean(properties, "storageEsp", storageEsp);
+        storageUseTypeColors = getBoolean(properties, "storageUseTypeColors", storageUseTypeColors);
         ancientDebrisEsp = getBoolean(properties, "ancientDebrisEsp", ancientDebrisEsp);
         itemEsp = getBoolean(properties, "itemEsp", itemEsp);
         ghostEsp = getBoolean(properties, "ghostEsp", ghostEsp);
@@ -319,6 +332,11 @@ public final class EspSettings {
         friendTracerRed = getFloat(properties, "friendTracerRed", friendTracerRed);
         friendTracerGreen = getFloat(properties, "friendTracerGreen", friendTracerGreen);
         friendTracerBlue = getFloat(properties, "friendTracerBlue", friendTracerBlue);
+        storageRed = getFloat(properties, "storageRed", storageRed);
+        storageGreen = getFloat(properties, "storageGreen", storageGreen);
+        storageBlue = getFloat(properties, "storageBlue", storageBlue);
+        storageAlpha = getFloat(properties, "storageAlpha", storageAlpha);
+        storageLineThickness = getDouble(properties, "storageLineThickness", storageLineThickness);
         lineThickness = getDouble(properties, "lineThickness", lineThickness);
         loadKey(guiKeyBinding, properties.getProperty("guiKey"));
         loadKey(toggleEspKeyBinding, properties.getProperty("toggleEspKey"));
