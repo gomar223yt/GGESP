@@ -337,8 +337,8 @@ public class GGESPClient implements ClientModInitializer {
     ) {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(
-            RenderLayer.getLines().getDrawMode(),
-            RenderLayer.getLines().getVertexFormat()
+            VertexFormat.DrawMode.QUADS,
+            VertexFormats.POSITION_COLOR
         );
 
         for (Entity entity : renderableEntities) {
@@ -350,10 +350,9 @@ public class GGESPClient implements ClientModInitializer {
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
-        RenderSystem.lineWidth((float) EspSettings.lineThickness);
         try (BuiltBuffer builtBuffer = buffer.endNullable()) {
             if (builtBuffer != null) {
-                RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
+                RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
@@ -468,23 +467,28 @@ public class GGESPClient implements ClientModInitializer {
         float blue,
         float alpha
     ) {
-        Matrix4f matrix = matrices.peek().getPositionMatrix();
-        float nx = (float) (x2 - x1);
-        float ny = (float) (y2 - y1);
-        float nz = (float) (z2 - z1);
-        float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-        if (len > 0.0F) {
-            nx /= len;
-            ny /= len;
-            nz /= len;
+        double minX = Math.min(x1, x2);
+        double minY = Math.min(y1, y2);
+        double minZ = Math.min(z1, z2);
+        double maxX = Math.max(x1, x2);
+        double maxY = Math.max(y1, y2);
+        double maxZ = Math.max(z1, z2);
+        double thickness = Math.max(0.008D, EspSettings.lineThickness * 0.006D);
+
+        if (minX == maxX) {
+            minX -= thickness;
+            maxX += thickness;
+        }
+        if (minY == maxY) {
+            minY -= thickness;
+            maxY += thickness;
+        }
+        if (minZ == maxZ) {
+            minZ -= thickness;
+            maxZ += thickness;
         }
 
-        buffer.vertex(matrix, (float) x1, (float) y1, (float) z1)
-            .color(red, green, blue, alpha)
-            .normal(matrices.peek(), nx, ny, nz);
-        buffer.vertex(matrix, (float) x2, (float) y2, (float) z2)
-            .color(red, green, blue, alpha)
-            .normal(matrices.peek(), nx, ny, nz);
+        drawFilledBoxFaces(matrices, buffer, new Box(minX, minY, minZ, maxX, maxY, maxZ), red, green, blue, alpha);
     }
 
     private void renderWallModels(
@@ -666,8 +670,8 @@ public class GGESPClient implements ClientModInitializer {
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(
-            RenderLayer.getLines().getDrawMode(),
-            RenderLayer.getLines().getVertexFormat()
+            VertexFormat.DrawMode.QUADS,
+            VertexFormats.POSITION_COLOR
         );
 
         double maxDistanceSq = getStorageRenderDistance(client);
@@ -700,10 +704,9 @@ public class GGESPClient implements ClientModInitializer {
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
-        RenderSystem.lineWidth(2.0F);
         try (BuiltBuffer builtBuffer = buffer.endNullable()) {
             if (builtBuffer != null) {
-                RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
+                RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
@@ -721,8 +724,8 @@ public class GGESPClient implements ClientModInitializer {
     ) {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(
-            RenderLayer.getLines().getDrawMode(),
-            RenderLayer.getLines().getVertexFormat()
+            VertexFormat.DrawMode.QUADS,
+            VertexFormats.POSITION_COLOR
         );
 
         for (ItemEntity item : items) {
@@ -734,10 +737,9 @@ public class GGESPClient implements ClientModInitializer {
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
-        RenderSystem.lineWidth((float) EspSettings.lineThickness);
         try (BuiltBuffer builtBuffer = buffer.endNullable()) {
             if (builtBuffer != null) {
-                RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
+                RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
@@ -795,8 +797,8 @@ public class GGESPClient implements ClientModInitializer {
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(
-            RenderLayer.getLines().getDrawMode(),
-            RenderLayer.getLines().getVertexFormat()
+            VertexFormat.DrawMode.QUADS,
+            VertexFormats.POSITION_COLOR
         );
 
         for (BlockPos pos : cachedDebrisPositions) {
@@ -816,10 +818,9 @@ public class GGESPClient implements ClientModInitializer {
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
-        RenderSystem.lineWidth(2.0F);
         try (BuiltBuffer builtBuffer = buffer.endNullable()) {
             if (builtBuffer != null) {
-                RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
+                RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
         } finally {
