@@ -343,11 +343,7 @@ public class GGESPClient implements ClientModInitializer {
 
         for (Entity entity : renderableEntities) {
             Box box = toCameraRelativeBox(entity, cameraX, cameraY, cameraZ, tickDelta);
-            VertexRendering.drawBox(
-                matrices, buffer, box,
-                EspSettings.red, EspSettings.green, EspSettings.blue,
-                EspSettings.alpha
-            );
+            drawCompleteOutlineBox(matrices, buffer, box, EspSettings.red, EspSettings.green, EspSettings.blue, EspSettings.alpha);
         }
 
         RenderSystem.enableBlend();
@@ -431,6 +427,64 @@ public class GGESPClient implements ClientModInitializer {
         } finally {
             resetRenderState();
         }
+    }
+
+    private void drawCompleteOutlineBox(
+        MatrixStack matrices,
+        BufferBuilder buffer,
+        Box box,
+        float red,
+        float green,
+        float blue,
+        float alpha
+    ) {
+        drawLine(matrices, buffer, box.minX, box.minY, box.minZ, box.maxX, box.minY, box.minZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.maxX, box.minY, box.minZ, box.maxX, box.minY, box.maxZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.maxX, box.minY, box.maxZ, box.minX, box.minY, box.maxZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.minX, box.minY, box.maxZ, box.minX, box.minY, box.minZ, red, green, blue, alpha);
+
+        drawLine(matrices, buffer, box.minX, box.maxY, box.minZ, box.maxX, box.maxY, box.minZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.maxX, box.maxY, box.minZ, box.maxX, box.maxY, box.maxZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.maxX, box.maxY, box.maxZ, box.minX, box.maxY, box.maxZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.minX, box.maxY, box.maxZ, box.minX, box.maxY, box.minZ, red, green, blue, alpha);
+
+        drawLine(matrices, buffer, box.minX, box.minY, box.minZ, box.minX, box.maxY, box.minZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.maxX, box.minY, box.minZ, box.maxX, box.maxY, box.minZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.maxX, box.minY, box.maxZ, box.maxX, box.maxY, box.maxZ, red, green, blue, alpha);
+        drawLine(matrices, buffer, box.minX, box.minY, box.maxZ, box.minX, box.maxY, box.maxZ, red, green, blue, alpha);
+    }
+
+    private void drawLine(
+        MatrixStack matrices,
+        BufferBuilder buffer,
+        double x1,
+        double y1,
+        double z1,
+        double x2,
+        double y2,
+        double z2,
+        float red,
+        float green,
+        float blue,
+        float alpha
+    ) {
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        float nx = (float) (x2 - x1);
+        float ny = (float) (y2 - y1);
+        float nz = (float) (z2 - z1);
+        float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (len > 0.0F) {
+            nx /= len;
+            ny /= len;
+            nz /= len;
+        }
+
+        buffer.vertex(matrix, (float) x1, (float) y1, (float) z1)
+            .color(red, green, blue, alpha)
+            .normal(matrices.peek(), nx, ny, nz);
+        buffer.vertex(matrix, (float) x2, (float) y2, (float) z2)
+            .color(red, green, blue, alpha)
+            .normal(matrices.peek(), nx, ny, nz);
     }
 
     private void renderWallModels(
@@ -639,7 +693,7 @@ public class GGESPClient implements ClientModInitializer {
                 pos.getZ() + 1 - cameraZ
             );
 
-            VertexRendering.drawBox(matrices, buffer, box, entry.red(), entry.green(), entry.blue(), 0.8F);
+            drawCompleteOutlineBox(matrices, buffer, box, entry.red(), entry.green(), entry.blue(), 0.8F);
         }
 
         RenderSystem.enableBlend();
@@ -673,7 +727,7 @@ public class GGESPClient implements ClientModInitializer {
 
         for (ItemEntity item : items) {
             Box box = toCameraRelativeBox(item, cameraX, cameraY, cameraZ, tickDelta).expand(0.03D);
-            VertexRendering.drawBox(matrices, buffer, box, 0.2F, 1.0F, 0.2F, 0.9F);
+            drawCompleteOutlineBox(matrices, buffer, box, 0.2F, 1.0F, 0.2F, 0.9F);
         }
 
         RenderSystem.enableBlend();
@@ -755,7 +809,7 @@ public class GGESPClient implements ClientModInitializer {
                 pos.getZ() + 1 - cameraZ
             );
 
-            VertexRendering.drawBox(matrices, buffer, box, 0.6F, 0.3F, 0.2F, 0.9F);
+            drawCompleteOutlineBox(matrices, buffer, box, 0.6F, 0.3F, 0.2F, 0.9F);
         }
 
         RenderSystem.enableBlend();
