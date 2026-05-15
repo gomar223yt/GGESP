@@ -44,8 +44,6 @@ public final class EspSettings {
     public static boolean ghostEsp = true;
     public static boolean wallModels = false;
     public static boolean freecam = false;
-    public static boolean customHand = false;
-    public static String customHandAnimationMode = "Обычная";
 
     public static float red = 1.0F;
     public static float green = 0.1F;
@@ -60,16 +58,6 @@ public final class EspSettings {
     public static float storageAlpha = 0.9F;
     public static double storageLineThickness = 2.0D;
     public static double lineThickness = 1.0D;
-    public static double customHandAnimationSpeed = 6.0D;
-    public static double customHandSwingPower = 5.0D;
-    public static double customHandMainScale = 1.0D;
-    public static double customHandOffScale = 1.0D;
-    public static double customHandMainX = 0.0D;
-    public static double customHandMainY = 0.0D;
-    public static double customHandMainZ = 0.0D;
-    public static double customHandOffX = 0.0D;
-    public static double customHandOffY = 0.0D;
-    public static double customHandOffZ = 0.0D;
 
     private static final Set<String> friendsList = new LinkedHashSet<>();
     private static final Map<String, FriendSettings> friendSettings = new LinkedHashMap<>();
@@ -274,8 +262,6 @@ public final class EspSettings {
         properties.setProperty("itemEsp", Boolean.toString(itemEsp));
         properties.setProperty("ghostEsp", Boolean.toString(ghostEsp));
         properties.setProperty("wallModels", Boolean.toString(wallModels));
-        properties.setProperty("customHand", Boolean.toString(customHand));
-        properties.setProperty("customHandAnimationMode", customHandAnimationMode);
         properties.setProperty("red", Float.toString(red));
         properties.setProperty("green", Float.toString(green));
         properties.setProperty("blue", Float.toString(blue));
@@ -289,16 +275,6 @@ public final class EspSettings {
         properties.setProperty("storageAlpha", Float.toString(storageAlpha));
         properties.setProperty("storageLineThickness", Double.toString(storageLineThickness));
         properties.setProperty("lineThickness", Double.toString(lineThickness));
-        properties.setProperty("customHandAnimationSpeed", Double.toString(customHandAnimationSpeed));
-        properties.setProperty("customHandSwingPower", Double.toString(customHandSwingPower));
-        properties.setProperty("customHandMainScale", Double.toString(customHandMainScale));
-        properties.setProperty("customHandOffScale", Double.toString(customHandOffScale));
-        properties.setProperty("customHandMainX", Double.toString(customHandMainX));
-        properties.setProperty("customHandMainY", Double.toString(customHandMainY));
-        properties.setProperty("customHandMainZ", Double.toString(customHandMainZ));
-        properties.setProperty("customHandOffX", Double.toString(customHandOffX));
-        properties.setProperty("customHandOffY", Double.toString(customHandOffY));
-        properties.setProperty("customHandOffZ", Double.toString(customHandOffZ));
         properties.setProperty("guiKey", getBoundGuiKey().getTranslationKey());
         properties.setProperty("toggleEspKey", getBoundToggleEspKey().getTranslationKey());
         properties.setProperty("freecamKey", getBoundFreecamKey().getTranslationKey());
@@ -349,8 +325,6 @@ public final class EspSettings {
         itemEsp = getBoolean(properties, "itemEsp", itemEsp);
         ghostEsp = getBoolean(properties, "ghostEsp", ghostEsp);
         wallModels = getBoolean(properties, "wallModels", wallModels);
-        customHand = getBoolean(properties, "customHand", customHand);
-        customHandAnimationMode = properties.getProperty("customHandAnimationMode", customHandAnimationMode);
         red = getFloat(properties, "red", red);
         green = getFloat(properties, "green", green);
         blue = getFloat(properties, "blue", blue);
@@ -364,16 +338,6 @@ public final class EspSettings {
         storageAlpha = getFloat(properties, "storageAlpha", storageAlpha);
         storageLineThickness = getDouble(properties, "storageLineThickness", storageLineThickness);
         lineThickness = getDouble(properties, "lineThickness", lineThickness);
-        customHandAnimationSpeed = getDouble(properties, "customHandAnimationSpeed", customHandAnimationSpeed);
-        customHandSwingPower = getDouble(properties, "customHandSwingPower", customHandSwingPower);
-        customHandMainScale = getDouble(properties, "customHandMainScale", customHandMainScale);
-        customHandOffScale = getDouble(properties, "customHandOffScale", customHandOffScale);
-        customHandMainX = getDouble(properties, "customHandMainX", customHandMainX);
-        customHandMainY = getDouble(properties, "customHandMainY", customHandMainY);
-        customHandMainZ = getDouble(properties, "customHandMainZ", customHandMainZ);
-        customHandOffX = getDouble(properties, "customHandOffX", customHandOffX);
-        customHandOffY = getDouble(properties, "customHandOffY", customHandOffY);
-        customHandOffZ = getDouble(properties, "customHandOffZ", customHandOffZ);
         loadKey(guiKeyBinding, properties.getProperty("guiKey"));
         loadKey(toggleEspKeyBinding, properties.getProperty("toggleEspKey"));
         loadKey(freecamKeyBinding, properties.getProperty("freecamKey"));

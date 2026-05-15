@@ -279,12 +279,11 @@ public class ClickGuiScreen extends Screen {
                 new ToggleItem("Ancient Debris", Icon.ANCIENT_DEBRIS, () -> EspSettings.ancientDebrisEsp, value -> EspSettings.ancientDebrisEsp = value),
                 new ToggleItem("Item ESP", Icon.ITEM, () -> EspSettings.itemEsp, value -> EspSettings.itemEsp = value),
                 new ToggleItem("Wall Models", Icon.WALL_MODELS, () -> EspSettings.wallModels, value -> EspSettings.wallModels = value),
-                new ToggleItem("Custom Hand", Icon.GUI_KEY, () -> EspSettings.customHand, value -> EspSettings.customHand = value),
                 new ToggleItem("Ghost ESP", Icon.GHOST, () -> EspSettings.ghostEsp, value -> EspSettings.ghostEsp = value),
                 new ToggleItem("Freecam", Icon.FREECAM, FreecamController::isActive, value -> FreecamController.toggle())
             );
 
-            float contentHeight = cardH + rowGap + items.size() * (cardH + rowGap) + (cardH + rowGap) * 4.0F + 20.0F * 50.0F * scale + 148.0F * scale;
+            float contentHeight = cardH + rowGap + items.size() * (cardH + rowGap) + (cardH + rowGap) * 3.0F + 10.0F * 50.0F * scale + 148.0F * scale;
             float maxScroll = Math.max(0.0F, contentHeight - viewportH);
             float mouseX = ImGui.getIO().getMousePosX();
             float mouseY = ImGui.getIO().getMousePosY();
@@ -312,8 +311,6 @@ public class ClickGuiScreen extends Screen {
             contentY += cardH + rowGap;
             drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.FREECAM, "Freecam Key", keyName(EspSettings.getBoundFreecamKey()), KeyCaptureMode.FREECAM, scale);
             contentY += cardH + 14.0F * scale;
-            drawModeCard(draw, contentX, contentY, contentW, cardH, scale);
-            contentY += cardH + 14.0F * scale;
 
             drawSlider(draw, "Red", EspSettings.red, value -> EspSettings.red = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
@@ -334,26 +331,6 @@ public class ClickGuiScreen extends Screen {
             drawSlider(draw, "Storage Alpha", EspSettings.storageAlpha, value -> EspSettings.storageAlpha = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
             drawSlider(draw, "Storage Thickness", (float) EspSettings.storageLineThickness, value -> EspSettings.storageLineThickness = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 8.0F, scale);
-            contentY += 62.0F * scale;
-            drawSlider(draw, "Animation Speed", (float) EspSettings.customHandAnimationSpeed, value -> EspSettings.customHandAnimationSpeed = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 20.0F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Swing Power", (float) EspSettings.customHandSwingPower, value -> EspSettings.customHandSwingPower = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 10.0F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Main Scale", (float) EspSettings.customHandMainScale, value -> EspSettings.customHandMainScale = value, contentX, contentY, contentW, cardH * 0.78F, 0.5F, 1.5F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Off Scale", (float) EspSettings.customHandOffScale, value -> EspSettings.customHandOffScale = value, contentX, contentY, contentW, cardH * 0.78F, 0.5F, 1.5F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Main X", (float) EspSettings.customHandMainX, value -> EspSettings.customHandMainX = value, contentX, contentY, contentW, cardH * 0.78F, -2.0F, 2.0F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Main Y", (float) EspSettings.customHandMainY, value -> EspSettings.customHandMainY = value, contentX, contentY, contentW, cardH * 0.78F, -2.0F, 2.0F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Main Z", (float) EspSettings.customHandMainZ, value -> EspSettings.customHandMainZ = value, contentX, contentY, contentW, cardH * 0.78F, -2.0F, 2.0F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Off X", (float) EspSettings.customHandOffX, value -> EspSettings.customHandOffX = value, contentX, contentY, contentW, cardH * 0.78F, -2.0F, 2.0F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Off Y", (float) EspSettings.customHandOffY, value -> EspSettings.customHandOffY = value, contentX, contentY, contentW, cardH * 0.78F, -2.0F, 2.0F, scale);
-            contentY += 50.0F * scale;
-            drawSlider(draw, "Off Z", (float) EspSettings.customHandOffZ, value -> EspSettings.customHandOffZ = value, contentX, contentY, contentW, cardH * 0.78F, -2.0F, 2.0F, scale);
 
             float footerY = contentY + 82.0F * scale;
             String footer = "GUI: " + keyName(EspSettings.getBoundGuiKey()) + " | ESP: " + keyName(EspSettings.getBoundToggleEspKey()) + " | Freecam: " + keyName(EspSettings.getBoundFreecamKey());
@@ -616,18 +593,6 @@ public class ClickGuiScreen extends Screen {
             drawCardBase(draw, x, y, w, h, hovered);
             icon.draw(draw, x + 28.0F * scale, y + h * 0.5F - 13.0F * scale, 28.0F * scale, 28.0F * scale, rgba(158, 130, 255, 255));
             String text = captureMode == mode ? label + ": press key..." : label + ": " + value;
-            drawText(draw, x + 76.0F * scale, y + h * 0.5F - 9.0F, rgba(166, 145, 255, 255), text);
-        }
-
-        private void drawModeCard(ImDrawList draw, float x, float y, float w, float h, float scale) {
-            ImGui.setCursorScreenPos(x, y);
-            if (ImGui.invisibleButton("##custom_hand_mode", w, h)) {
-                CustomHandAnimations.cycleMode();
-            }
-            boolean hovered = ImGui.isItemHovered();
-            drawCardBase(draw, x, y, w, h, hovered);
-            Icon.GUI_KEY.draw(draw, x + 28.0F * scale, y + h * 0.5F - 13.0F * scale, 28.0F * scale, 28.0F * scale, rgba(158, 130, 255, 255));
-            String text = "Animation Mode: " + EspSettings.customHandAnimationMode;
             drawText(draw, x + 76.0F * scale, y + h * 0.5F - 9.0F, rgba(166, 145, 255, 255), text);
         }
 
