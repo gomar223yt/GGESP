@@ -13,7 +13,9 @@
     "FreecamPlayerMixin",
     "FreecamEntityMixin",
     "InGameOverlayRendererMixin",
-    "BackgroundRendererMixin"
+    "BackgroundRendererMixin",
+    "HeldItemRendererMixin",
+    "LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
