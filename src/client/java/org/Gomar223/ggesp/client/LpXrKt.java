@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class GhostTracker {
+public final class LpXrKt {
     private static final long EXPIRE_MS = 8_000;
     private static final int MAX_GHOSTS = 64;
 
@@ -16,7 +16,7 @@ public final class GhostTracker {
 
     private static volatile boolean enabled = true;
 
-    private GhostTracker() {
+    private LpXrKt() {
     }
 
     public static boolean isEnabled() {

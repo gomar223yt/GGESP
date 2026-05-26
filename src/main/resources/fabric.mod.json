@@ -11,10 +11,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "org.Gomar223.ggesp.GGESP"
+      "org.Gomar223.ggesp.AeKtQm"
     ],
     "client": [
-      "org.Gomar223.ggesp.client.GGESPClient"
+      "org.Gomar223.ggesp.client.VnQwZa"
     ]
   },
   "mixins": [

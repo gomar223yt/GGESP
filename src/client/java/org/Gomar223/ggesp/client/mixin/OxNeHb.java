@@ -5,17 +5,17 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.Gomar223.ggesp.client.FreecamController;
+import org.Gomar223.ggesp.client.TmYpRc;
 
 @Mixin(ClientPlayerEntity.class)
-public abstract class FreecamPlayerMixin {
+public abstract class OxNeHb {
     @Inject(method = "tick", at = @At("TAIL"))
     private void ggesp$syncClientPlayerToFreecam(CallbackInfo ci) {
-        if (!FreecamController.isActive()) {
+        if (!TmYpRc.isActive()) {
             return;
         }
 
-        FreecamController.syncClientPlayerToFreecam();
+        TmYpRc.syncClientPlayerToFreecam();
     }
 
     /**
@@ -24,7 +24,7 @@ public abstract class FreecamPlayerMixin {
      */
     @Inject(method = "sendMovementPackets", at = @At("HEAD"), cancellable = true)
     private void ggesp$blockMovementPackets(CallbackInfo ci) {
-        if (FreecamController.isActive()) {
+        if (TmYpRc.isActive()) {
             ci.cancel();
         }
     }

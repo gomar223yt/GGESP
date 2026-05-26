@@ -10,12 +10,12 @@ import net.minecraft.util.TriState;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class WallRenderLayers extends RenderLayer {
+public final class JcNpYw extends RenderLayer {
     private static final Map<Identifier, RenderLayer> ENTITY_LAYERS = new ConcurrentHashMap<>();
     private static final Map<Identifier, RenderLayer> ARMOR_LAYERS = new ConcurrentHashMap<>();
     private static final Map<Identifier, RenderLayer> ARMOR_DECAL_LAYERS = new ConcurrentHashMap<>();
 
-    private WallRenderLayers(
+    private JcNpYw(
         String name,
         VertexFormat vertexFormat,
         VertexFormat.DrawMode drawMode,

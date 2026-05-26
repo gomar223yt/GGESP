@@ -1,10 +1,10 @@
 package org.Gomar223.ggesp.client;
 
-public final class WallModelRenderState {
+public final class HmDqSv {
     private static final ThreadLocal<Integer> DEPTH = ThreadLocal.withInitial(() -> 0);
     private static volatile boolean customLayersEnabled = false;
 
-    private WallModelRenderState() {
+    private HmDqSv() {
     }
 
     public static void begin() {

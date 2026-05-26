@@ -19,14 +19,14 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
-import org.Gomar223.ggesp.GGESP;
+import org.Gomar223.ggesp.AeKtQm;
 
-public final class EspSettings {
-    public static final String KEY_CATEGORY = "category." + GGESP.MOD_ID;
-    public static final String GUI_KEY_ID = "key." + GGESP.MOD_ID + ".click_gui";
-    public static final String TOGGLE_KEY_ID = "key." + GGESP.MOD_ID + ".toggle_esp";
-    public static final String FREECAM_KEY_ID = "key." + GGESP.MOD_ID + ".freecam";
-    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve(GGESP.MOD_ID + ".properties");
+public final class KxVbNq {
+    public static final String KEY_CATEGORY = "category." + AeKtQm.MOD_ID;
+    public static final String GUI_KEY_ID = "key." + AeKtQm.MOD_ID + ".click_gui";
+    public static final String TOGGLE_KEY_ID = "key." + AeKtQm.MOD_ID + ".toggle_esp";
+    public static final String FREECAM_KEY_ID = "key." + AeKtQm.MOD_ID + ".freecam";
+    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve(AeKtQm.MOD_ID + ".properties");
 
     public static boolean espEnabled = true;
     public static boolean boxes = true;
@@ -66,7 +66,7 @@ public final class EspSettings {
     private static KeyBinding toggleEspKeyBinding;
     private static KeyBinding freecamKeyBinding;
 
-    private EspSettings() {
+    private KxVbNq() {
     }
 
     public static void initialize() {
@@ -293,7 +293,7 @@ public final class EspSettings {
                 properties.store(writer, "GGESP settings");
             }
         } catch (IOException e) {
-            GGESP.LOGGER.warn("Failed to save GGESP config.", e);
+            AeKtQm.LOGGER.warn("Failed to save GGESP config.", e);
         }
     }
 
@@ -306,7 +306,7 @@ public final class EspSettings {
         try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
             properties.load(reader);
         } catch (IOException e) {
-            GGESP.LOGGER.warn("Failed to load GGESP config.", e);
+            AeKtQm.LOGGER.warn("Failed to load GGESP config.", e);
             return;
         }
 
@@ -347,7 +347,7 @@ public final class EspSettings {
         friendSettings.clear();
         String savedFriends = properties.getProperty("friendsList", "");
         friendsList.addAll(Arrays.stream(savedFriends.split(","))
-            .map(EspSettings::normalizeFriendName)
+            .map(KxVbNq::normalizeFriendName)
             .filter(name -> !name.isEmpty())
             .collect(Collectors.toCollection(LinkedHashSet::new)));
         for (String friend : friendsList) {
@@ -368,7 +368,7 @@ public final class EspSettings {
         try {
             binding.setBoundKey(InputUtil.fromTranslationKey(translationKey));
         } catch (IllegalArgumentException e) {
-            GGESP.LOGGER.warn("Ignoring invalid GGESP key binding: {}", translationKey);
+            AeKtQm.LOGGER.warn("Ignoring invalid GGESP key binding: {}", translationKey);
         }
     }
 

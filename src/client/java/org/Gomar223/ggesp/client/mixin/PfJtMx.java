@@ -8,13 +8,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.Gomar223.ggesp.client.GhostTracker;
+import org.Gomar223.ggesp.client.LpXrKt;
 
 @Mixin(ClientPlayNetworkHandler.class)
-public class EquipmentUpdateMixin {
+public class PfJtMx {
     @Inject(method = "onEntityEquipmentUpdate", at = @At("HEAD"))
     private void ggesp$onEquipmentUpdate(EntityEquipmentUpdateS2CPacket packet, CallbackInfo ci) {
-        if (!GhostTracker.isEnabled()) return;
+        if (!LpXrKt.isEnabled()) return;
 
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
@@ -28,7 +28,7 @@ public class EquipmentUpdateMixin {
 
         double distSq = client.player.squaredDistanceTo(entity);
         if (distSq > 9.0) {
-            GhostTracker.addGhost(entity.getX(), entity.getY(), entity.getZ(), "Equip #" + entityId);
+            LpXrKt.addGhost(entity.getX(), entity.getY(), entity.getZ(), "Equip #" + entityId);
         }
     }
 }

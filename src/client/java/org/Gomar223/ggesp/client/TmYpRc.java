@@ -6,9 +6,9 @@ import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.math.MathHelper;
-import org.Gomar223.ggesp.GGESP;
+import org.Gomar223.ggesp.AeKtQm;
 
-public final class FreecamController {
+public final class TmYpRc {
     private static boolean active = false;
     private static double posX, posY, posZ;
     private static double prevPosX, prevPosY, prevPosZ;
@@ -19,7 +19,7 @@ public final class FreecamController {
     private static final double BASE_SPEED = 0.5;
     private static final double SPRINT_MULTIPLIER = 2.5;
 
-    private FreecamController() {
+    private TmYpRc() {
     }
 
     public static boolean isActive() {
@@ -88,7 +88,7 @@ public final class FreecamController {
 
         active = true;
         syncClientPlayerToFreecam();
-        GGESP.LOGGER.info("Freecam enabled at [{}, {}, {}]", (int) posX, (int) posY, (int) posZ);
+        AeKtQm.LOGGER.info("Freecam enabled at [{}, {}, {}]", (int) posX, (int) posY, (int) posZ);
     }
 
     public static void disable() {
@@ -100,7 +100,7 @@ public final class FreecamController {
         }
 
         active = false;
-        GGESP.LOGGER.info("Freecam disabled");
+        AeKtQm.LOGGER.info("Freecam disabled");
     }
 
     public static void handleMouseInput(double deltaX, double deltaY) {

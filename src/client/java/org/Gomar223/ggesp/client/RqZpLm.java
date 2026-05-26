@@ -41,7 +41,7 @@ import xyz.breadloaf.imguimc.Imguimc;
 import xyz.breadloaf.imguimc.interfaces.Renderable;
 import xyz.breadloaf.imguimc.interfaces.Theme;
 
-public class ClickGuiScreen extends Screen {
+public class RqZpLm extends Screen {
     private static final String INTER_FONT_RESOURCE = "/Inter_18pt-Regular.ttf";
     private static final String ICONS_RESOURCE = "/clickGUI-icons.png";
     private static final String FRIENDS_ICONS_RESOURCE = "/friends-icons.png";
@@ -76,7 +76,7 @@ public class ClickGuiScreen extends Screen {
     private float scrollOffset;
     private boolean pushedRenderable;
 
-    public ClickGuiScreen(Screen parent) {
+    public RqZpLm(Screen parent) {
         super(Text.literal("GGESP ClickGUI"));
         this.parent = parent;
     }
@@ -101,7 +101,7 @@ public class ClickGuiScreen extends Screen {
     }
 
     private void dismissGui() {
-        EspSettings.saveConfig();
+        KxVbNq.saveConfig();
         if (pushedRenderable) {
             Imguimc.pullRenderable(renderable);
             pushedRenderable = false;
@@ -147,11 +147,11 @@ public class ClickGuiScreen extends Screen {
                 : InputUtil.fromKeyCode(keyCode, scanCode);
 
             if (captureMode == KeyCaptureMode.GUI) {
-                EspSettings.setGuiKey(newKey);
+                KxVbNq.setGuiKey(newKey);
             } else if (captureMode == KeyCaptureMode.ESP_TOGGLE) {
-                EspSettings.setToggleEspKey(newKey);
+                KxVbNq.setToggleEspKey(newKey);
             } else if (captureMode == KeyCaptureMode.FREECAM) {
-                EspSettings.setFreecamKey(newKey);
+                KxVbNq.setFreecamKey(newKey);
             }
 
             captureMode = KeyCaptureMode.NONE;
@@ -267,20 +267,20 @@ public class ClickGuiScreen extends Screen {
             float viewportH = viewportBottom - contentStartY;
 
             List<ToggleItem> items = List.of(
-                new ToggleItem("ESP", Icon.ESP, () -> EspSettings.espEnabled, value -> EspSettings.espEnabled = value),
-                new ToggleItem("Players", Icon.PLAYERS, () -> EspSettings.renderPlayers, value -> EspSettings.renderPlayers = value),
-                new ToggleItem("Mobs", Icon.MOBS, () -> EspSettings.renderMobs, value -> EspSettings.renderMobs = value),
-                new ToggleItem("Boxes", Icon.BOXES, () -> EspSettings.boxes, value -> EspSettings.boxes = value),
-                new ToggleItem("Filled Boxes", Icon.FILLED_BOXES, () -> EspSettings.filledBoxes, value -> EspSettings.filledBoxes = value),
-                new ToggleItem("Tracers", Icon.TRACERS, () -> EspSettings.tracers, value -> EspSettings.tracers = value),
-                new ToggleItem("Nametags", Icon.NAMETAGS, () -> EspSettings.nametags, value -> EspSettings.nametags = value),
-                new ToggleItem("Storage ESP", Icon.STORAGE, () -> EspSettings.storageEsp, value -> EspSettings.storageEsp = value),
-                new ToggleItem("Storage Type Colors", Icon.STORAGE, () -> EspSettings.storageUseTypeColors, value -> EspSettings.storageUseTypeColors = value),
-                new ToggleItem("Ancient Debris", Icon.ANCIENT_DEBRIS, () -> EspSettings.ancientDebrisEsp, value -> EspSettings.ancientDebrisEsp = value),
-                new ToggleItem("Item ESP", Icon.ITEM, () -> EspSettings.itemEsp, value -> EspSettings.itemEsp = value),
-                new ToggleItem("Wall Models", Icon.WALL_MODELS, () -> EspSettings.wallModels, value -> EspSettings.wallModels = value),
-                new ToggleItem("Ghost ESP", Icon.GHOST, () -> EspSettings.ghostEsp, value -> EspSettings.ghostEsp = value),
-                new ToggleItem("Freecam", Icon.FREECAM, FreecamController::isActive, value -> FreecamController.toggle())
+                new ToggleItem("ESP", Icon.ESP, () -> KxVbNq.espEnabled, value -> KxVbNq.espEnabled = value),
+                new ToggleItem("Players", Icon.PLAYERS, () -> KxVbNq.renderPlayers, value -> KxVbNq.renderPlayers = value),
+                new ToggleItem("Mobs", Icon.MOBS, () -> KxVbNq.renderMobs, value -> KxVbNq.renderMobs = value),
+                new ToggleItem("Boxes", Icon.BOXES, () -> KxVbNq.boxes, value -> KxVbNq.boxes = value),
+                new ToggleItem("Filled Boxes", Icon.FILLED_BOXES, () -> KxVbNq.filledBoxes, value -> KxVbNq.filledBoxes = value),
+                new ToggleItem("Tracers", Icon.TRACERS, () -> KxVbNq.tracers, value -> KxVbNq.tracers = value),
+                new ToggleItem("Nametags", Icon.NAMETAGS, () -> KxVbNq.nametags, value -> KxVbNq.nametags = value),
+                new ToggleItem("Storage ESP", Icon.STORAGE, () -> KxVbNq.storageEsp, value -> KxVbNq.storageEsp = value),
+                new ToggleItem("Storage Type Colors", Icon.STORAGE, () -> KxVbNq.storageUseTypeColors, value -> KxVbNq.storageUseTypeColors = value),
+                new ToggleItem("Ancient Debris", Icon.ANCIENT_DEBRIS, () -> KxVbNq.ancientDebrisEsp, value -> KxVbNq.ancientDebrisEsp = value),
+                new ToggleItem("Item ESP", Icon.ITEM, () -> KxVbNq.itemEsp, value -> KxVbNq.itemEsp = value),
+                new ToggleItem("Wall Models", Icon.WALL_MODELS, () -> KxVbNq.wallModels, value -> KxVbNq.wallModels = value),
+                new ToggleItem("Ghost ESP", Icon.GHOST, () -> KxVbNq.ghostEsp, value -> KxVbNq.ghostEsp = value),
+                new ToggleItem("Freecam", Icon.FREECAM, TmYpRc::isActive, value -> TmYpRc.toggle())
             );
 
             float contentHeight = cardH + rowGap + items.size() * (cardH + rowGap) + (cardH + rowGap) * 3.0F + 10.0F * 50.0F * scale + 148.0F * scale;
@@ -305,35 +305,35 @@ public class ClickGuiScreen extends Screen {
             }
 
             contentY += items.size() * (cardH + rowGap) + 2.0F * scale;
-            drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.GUI_KEY, "GUI Key", keyName(EspSettings.getBoundGuiKey()), KeyCaptureMode.GUI, scale);
+            drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.GUI_KEY, "GUI Key", keyName(KxVbNq.getBoundGuiKey()), KeyCaptureMode.GUI, scale);
             contentY += cardH + rowGap;
-            drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.ESP_KEY, "ESP Toggle Key", keyName(EspSettings.getBoundToggleEspKey()), KeyCaptureMode.ESP_TOGGLE, scale);
+            drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.ESP_KEY, "ESP Toggle Key", keyName(KxVbNq.getBoundToggleEspKey()), KeyCaptureMode.ESP_TOGGLE, scale);
             contentY += cardH + rowGap;
-            drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.FREECAM, "Freecam Key", keyName(EspSettings.getBoundFreecamKey()), KeyCaptureMode.FREECAM, scale);
+            drawKeyCard(draw, contentX, contentY, contentW, cardH, Icon.FREECAM, "Freecam Key", keyName(KxVbNq.getBoundFreecamKey()), KeyCaptureMode.FREECAM, scale);
             contentY += cardH + 14.0F * scale;
 
-            drawSlider(draw, "Red", EspSettings.red, value -> EspSettings.red = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            drawSlider(draw, "Red", KxVbNq.red, value -> KxVbNq.red = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
-            drawSlider(draw, "Green", EspSettings.green, value -> EspSettings.green = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            drawSlider(draw, "Green", KxVbNq.green, value -> KxVbNq.green = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
-            drawSlider(draw, "Blue", EspSettings.blue, value -> EspSettings.blue = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            drawSlider(draw, "Blue", KxVbNq.blue, value -> KxVbNq.blue = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
-            drawSlider(draw, "Alpha", EspSettings.alpha, value -> EspSettings.alpha = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            drawSlider(draw, "Alpha", KxVbNq.alpha, value -> KxVbNq.alpha = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
-            drawSlider(draw, "Line Thickness", (float) EspSettings.lineThickness, value -> EspSettings.lineThickness = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 5.0F, scale);
+            drawSlider(draw, "Line Thickness", (float) KxVbNq.lineThickness, value -> KxVbNq.lineThickness = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 5.0F, scale);
             contentY += 62.0F * scale;
-            drawSlider(draw, "Storage Red", EspSettings.storageRed, value -> EspSettings.storageRed = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            drawSlider(draw, "Storage Red", KxVbNq.storageRed, value -> KxVbNq.storageRed = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
-            drawSlider(draw, "Storage Green", EspSettings.storageGreen, value -> EspSettings.storageGreen = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            drawSlider(draw, "Storage Green", KxVbNq.storageGreen, value -> KxVbNq.storageGreen = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
-            drawSlider(draw, "Storage Blue", EspSettings.storageBlue, value -> EspSettings.storageBlue = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            drawSlider(draw, "Storage Blue", KxVbNq.storageBlue, value -> KxVbNq.storageBlue = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
-            drawSlider(draw, "Storage Alpha", EspSettings.storageAlpha, value -> EspSettings.storageAlpha = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
+            drawSlider(draw, "Storage Alpha", KxVbNq.storageAlpha, value -> KxVbNq.storageAlpha = value, contentX, contentY, contentW, cardH * 0.78F, 0.0F, 1.0F, scale);
             contentY += 50.0F * scale;
-            drawSlider(draw, "Storage Thickness", (float) EspSettings.storageLineThickness, value -> EspSettings.storageLineThickness = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 8.0F, scale);
+            drawSlider(draw, "Storage Thickness", (float) KxVbNq.storageLineThickness, value -> KxVbNq.storageLineThickness = value, contentX, contentY, contentW, cardH * 0.78F, 1.0F, 8.0F, scale);
 
             float footerY = contentY + 82.0F * scale;
-            String footer = "GUI: " + keyName(EspSettings.getBoundGuiKey()) + " | ESP: " + keyName(EspSettings.getBoundToggleEspKey()) + " | Freecam: " + keyName(EspSettings.getBoundFreecamKey());
+            String footer = "GUI: " + keyName(KxVbNq.getBoundGuiKey()) + " | ESP: " + keyName(KxVbNq.getBoundToggleEspKey()) + " | Freecam: " + keyName(KxVbNq.getBoundFreecamKey());
             drawText(draw, x + w * 0.5F - textWidth(footer) * 0.5F, footerY, rgba(132, 128, 180, 255), footer);
             draw.popClipRect();
 
@@ -484,13 +484,13 @@ public class ClickGuiScreen extends Screen {
             draw.addLine(x, y + h, x + w, y + h, rgba(48, 47, 74, 150), 1.0F);
             FriendsIcon.FRIEND_AVATAR.draw(draw, x + 18.0F * scale, y + 12.0F * scale, 34.0F * scale, 34.0F * scale, rgba(150, 118, 255, 255));
             drawText(draw, x + 66.0F * scale, y + h * 0.5F - 9.0F, rgba(245, 244, 255, 255), friend);
-            drawFriendSlider("friend_red_" + friend, x + w * 0.34F, y + 14.0F * scale, w * 0.14F, EspSettings.getFriendTracerRed(friend), value -> EspSettings.setFriendTracerRed(friend, value));
-            drawFriendSlider("friend_green_" + friend, x + w * 0.53F, y + 14.0F * scale, w * 0.14F, EspSettings.getFriendTracerGreen(friend), value -> EspSettings.setFriendTracerGreen(friend, value));
-            drawFriendSlider("friend_blue_" + friend, x + w * 0.72F, y + 14.0F * scale, w * 0.14F, EspSettings.getFriendTracerBlue(friend), value -> EspSettings.setFriendTracerBlue(friend, value));
-            drawSwitch(draw, x + w - 62.0F * scale, y + h * 0.5F - 14.0F * scale, "Friend Tracers " + friend, EspSettings.areFriendTracersEnabled(friend), scale);
+            drawFriendSlider("friend_red_" + friend, x + w * 0.34F, y + 14.0F * scale, w * 0.14F, KxVbNq.getFriendTracerRed(friend), value -> KxVbNq.setFriendTracerRed(friend, value));
+            drawFriendSlider("friend_green_" + friend, x + w * 0.53F, y + 14.0F * scale, w * 0.14F, KxVbNq.getFriendTracerGreen(friend), value -> KxVbNq.setFriendTracerGreen(friend, value));
+            drawFriendSlider("friend_blue_" + friend, x + w * 0.72F, y + 14.0F * scale, w * 0.14F, KxVbNq.getFriendTracerBlue(friend), value -> KxVbNq.setFriendTracerBlue(friend, value));
+            drawSwitch(draw, x + w - 62.0F * scale, y + h * 0.5F - 14.0F * scale, "Friend Tracers " + friend, KxVbNq.areFriendTracersEnabled(friend), scale);
             ImGui.setCursorScreenPos(x + w - 72.0F * scale, y + 8.0F * scale);
             if (ImGui.invisibleButton("##friend_tracers_" + friend, 64.0F * scale, 42.0F * scale)) {
-                EspSettings.setFriendTracers(friend, !EspSettings.areFriendTracersEnabled(friend));
+                KxVbNq.setFriendTracers(friend, !KxVbNq.areFriendTracersEnabled(friend));
             }
         }
 
@@ -504,14 +504,14 @@ public class ClickGuiScreen extends Screen {
             ImGui.setNextItemWidth(w);
             if (ImGui.sliderFloat("##" + id, holder, 0.0F, 1.0F, "")) {
                 setter.accept(holder[0]);
-                EspSettings.saveConfig();
+                KxVbNq.saveConfig();
             }
             ImGui.popStyleColor(4);
         }
 
         private List<String> visibleFriends() {
             String filter = friendSearch.get().trim().toLowerCase(Locale.ROOT);
-            List<String> friends = new ArrayList<>(EspSettings.getFriends());
+            List<String> friends = new ArrayList<>(KxVbNq.getFriends());
             friends.sort(Comparator.naturalOrder());
             if (filter.isEmpty()) {
                 return friends;
@@ -527,7 +527,7 @@ public class ClickGuiScreen extends Screen {
             if (name.isEmpty()) {
                 name = friendSearch.get().trim();
             }
-            EspSettings.addFriend(name);
+            KxVbNq.addFriend(name);
             selectedFriend = name.toLowerCase(Locale.ROOT);
             friendName.set("");
             friendSearch.set("");
@@ -542,7 +542,7 @@ public class ClickGuiScreen extends Screen {
                 name = friendSearch.get().trim();
             }
             if (!name.isEmpty()) {
-                EspSettings.removeFriend(name);
+                KxVbNq.removeFriend(name);
                 if (name.equalsIgnoreCase(selectedFriend)) {
                     selectedFriend = "";
                 }
@@ -573,7 +573,7 @@ public class ClickGuiScreen extends Screen {
             ImGui.setCursorScreenPos(x, y);
             if (ImGui.invisibleButton("##toggle_" + item.label(), w, h)) {
                 item.setter().accept(!enabled);
-                EspSettings.saveConfig();
+                KxVbNq.saveConfig();
             }
             enabled = item.getter().get();
             boolean hovered = ImGui.isItemHovered();
@@ -617,7 +617,7 @@ public class ClickGuiScreen extends Screen {
             ImGui.setNextItemWidth(sliderW);
             if (ImGui.sliderFloat("##slider_" + label, holder, min, max, "")) {
                 setter.accept(holder[0]);
-                EspSettings.saveConfig();
+                KxVbNq.saveConfig();
             }
             ImGui.popStyleColor(4);
             ImGui.popStyleVar(2);
@@ -665,7 +665,7 @@ public class ClickGuiScreen extends Screen {
             return;
         }
 
-        try (InputStream input = ClickGuiScreen.class.getResourceAsStream(INTER_FONT_RESOURCE)) {
+        try (InputStream input = RqZpLm.class.getResourceAsStream(INTER_FONT_RESOURCE)) {
             if (input == null) {
                 return;
             }
@@ -692,7 +692,7 @@ public class ClickGuiScreen extends Screen {
         }
 
         interTextAttempted = true;
-        try (InputStream input = ClickGuiScreen.class.getResourceAsStream(INTER_FONT_RESOURCE)) {
+        try (InputStream input = RqZpLm.class.getResourceAsStream(INTER_FONT_RESOURCE)) {
             if (input != null) {
                 interTextRenderer = InterTextRenderer.create(input);
             }
@@ -719,7 +719,7 @@ public class ClickGuiScreen extends Screen {
         }
 
         iconsAttempted = true;
-        try (InputStream input = ClickGuiScreen.class.getResourceAsStream(ICONS_RESOURCE)) {
+        try (InputStream input = RqZpLm.class.getResourceAsStream(ICONS_RESOURCE)) {
             if (input == null) {
                 return;
             }
@@ -739,7 +739,7 @@ public class ClickGuiScreen extends Screen {
         }
 
         friendsIconsAttempted = true;
-        try (InputStream input = ClickGuiScreen.class.getResourceAsStream(FRIENDS_ICONS_RESOURCE)) {
+        try (InputStream input = RqZpLm.class.getResourceAsStream(FRIENDS_ICONS_RESOURCE)) {
             if (input == null) {
                 return;
             }
@@ -827,7 +827,7 @@ public class ClickGuiScreen extends Screen {
         if (name.isEmpty()) {
             name = friendSearch.get().trim();
         }
-        EspSettings.addFriend(name);
+        KxVbNq.addFriend(name);
         selectedFriend = name.toLowerCase(Locale.ROOT);
         friendName.set("");
         friendSearch.set("");

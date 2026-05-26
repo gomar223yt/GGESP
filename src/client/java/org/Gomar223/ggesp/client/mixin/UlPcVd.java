@@ -11,12 +11,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.Gomar223.ggesp.client.EspSettings;
-import org.Gomar223.ggesp.client.WallModelRenderState;
-import org.Gomar223.ggesp.client.WallRenderLayers;
+import org.Gomar223.ggesp.client.KxVbNq;
+import org.Gomar223.ggesp.client.HmDqSv;
+import org.Gomar223.ggesp.client.JcNpYw;
 
 @Mixin(net.minecraft.client.render.entity.LivingEntityRenderer.class)
-public abstract class LivingEntityRendererMixin {
+public abstract class UlPcVd {
     @Shadow
     public abstract Identifier getTexture(LivingEntityRenderState state);
 
@@ -30,8 +30,8 @@ public abstract class LivingEntityRendererMixin {
         float tickDelta,
         CallbackInfo ci
     ) {
-        if (WallModelRenderState.isActive()
-            || (EspSettings.espEnabled && EspSettings.wallModels && EspSettings.renderPlayers && entity instanceof PlayerEntity)) {
+        if (HmDqSv.isActive()
+            || (KxVbNq.espEnabled && KxVbNq.wallModels && KxVbNq.renderPlayers && entity instanceof PlayerEntity)) {
             state.invisibleToPlayer = false;
         }
     }
@@ -44,8 +44,8 @@ public abstract class LivingEntityRendererMixin {
         boolean showOutline,
         CallbackInfoReturnable<RenderLayer> cir
     ) {
-        if (WallModelRenderState.isActive() && WallModelRenderState.areCustomLayersEnabled()) {
-            cir.setReturnValue(WallRenderLayers.getEntityNoDepth(this.getTexture(state)));
+        if (HmDqSv.isActive() && HmDqSv.areCustomLayersEnabled()) {
+            cir.setReturnValue(JcNpYw.getEntityNoDepth(this.getTexture(state)));
         }
     }
 }

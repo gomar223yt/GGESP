@@ -8,13 +8,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.Gomar223.ggesp.client.GhostTracker;
+import org.Gomar223.ggesp.client.LpXrKt;
 
 @Mixin(ClientPlayNetworkHandler.class)
-public class PlaySoundMixin {
+public class XgLoBf {
     @Inject(method = "onPlaySound", at = @At("RETURN"))
     private void ggesp$onPlaySound(PlaySoundS2CPacket packet, CallbackInfo ci) {
-        if (!GhostTracker.isEnabled()) return;
+        if (!LpXrKt.isEnabled()) return;
 
         SoundCategory cat = packet.getCategory();
         if (cat != SoundCategory.PLAYERS && cat != SoundCategory.HOSTILE && cat != SoundCategory.NEUTRAL) {
@@ -31,6 +31,6 @@ public class PlaySoundMixin {
         double distSq = client.player.squaredDistanceTo(x, y, z);
         if (distSq < 9.0) return;
 
-        GhostTracker.addGhost(x, y, z, "Sound: " + cat.getName());
+        LpXrKt.addGhost(x, y, z, "Sound: " + cat.getName());
     }
 }

@@ -11,12 +11,12 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.Gomar223.ggesp.client.GhostTracker;
+import org.Gomar223.ggesp.client.LpXrKt;
 
 import java.util.Set;
 
 @Mixin(ClientPlayNetworkHandler.class)
-public class ParticleMixin {
+public class NaReTy {
 
     @Unique
     private static final Set<ParticleType<?>> PLAYER_PARTICLES = Set.of(
@@ -36,7 +36,7 @@ public class ParticleMixin {
 
     @Inject(method = "onParticle", at = @At("RETURN"))
     private void ggesp$onParticle(ParticleS2CPacket packet, CallbackInfo ci) {
-        if (!GhostTracker.isEnabled()) return;
+        if (!LpXrKt.isEnabled()) return;
 
         ParticleEffect effect = packet.getParameters();
         if (effect == null) return;
@@ -55,6 +55,6 @@ public class ParticleMixin {
         if (distSq < 9.0) return;
 
         String typeName = type.toString();
-        GhostTracker.addGhost(x, y, z, "Particle: " + typeName);
+        LpXrKt.addGhost(x, y, z, "Particle: " + typeName);
     }
 }

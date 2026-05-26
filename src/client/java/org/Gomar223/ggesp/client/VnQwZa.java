@@ -39,7 +39,7 @@ import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.RaycastContext;
 import org.joml.Matrix4f;
-import org.Gomar223.ggesp.GGESP;
+import org.Gomar223.ggesp.AeKtQm;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class GGESPClient implements ClientModInitializer {
+public class VnQwZa implements ClientModInitializer {
     private static final double MAX_WALL_MODEL_DISTANCE = 64.0D;
     private static final double MAX_ENTITY_ESP_DISTANCE = 128.0D;
     private static final int STORAGE_SCAN_INTERVAL = 120;
@@ -85,11 +85,11 @@ public class GGESPClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        EspSettings.initialize();
+        KxVbNq.initialize();
         ClientTickEvents.END_CLIENT_TICK.register(this::onEndTick);
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(this::render);
         WorldRenderEvents.LAST.register(this::renderWallModelsPass);
-        GGESP.LOGGER.info("GGESP client renderer initialized.");
+        AeKtQm.LOGGER.info("GGESP client renderer initialized.");
     }
 
     private void onEndTick(MinecraftClient client) {
@@ -97,38 +97,38 @@ public class GGESPClient implements ClientModInitializer {
             return;
         }
 
-        boolean ghostEnabled = EspSettings.espEnabled && EspSettings.ghostEsp;
-        if (!ghostEnabled && GhostTracker.isEnabled()) {
-            GhostTracker.clear();
+        boolean ghostEnabled = KxVbNq.espEnabled && KxVbNq.ghostEsp;
+        if (!ghostEnabled && LpXrKt.isEnabled()) {
+            LpXrKt.clear();
         }
-        GhostTracker.setEnabled(ghostEnabled);
-        GhostTracker.tick();
+        LpXrKt.setEnabled(ghostEnabled);
+        LpXrKt.tick();
 
-        while (EspSettings.getGuiKeyBinding().wasPressed()) {
-            client.setScreen(new ClickGuiScreen(client.currentScreen));
-        }
-
-        while (EspSettings.getToggleEspKeyBinding().wasPressed()) {
-            EspSettings.espEnabled = !EspSettings.espEnabled;
-            EspSettings.saveConfig();
-            GGESP.LOGGER.info("ESP toggled: {}", EspSettings.espEnabled);
+        while (KxVbNq.getGuiKeyBinding().wasPressed()) {
+            client.setScreen(new RqZpLm(client.currentScreen));
         }
 
-        while (EspSettings.getFreecamKeyBinding().wasPressed()) {
-            FreecamController.toggle();
+        while (KxVbNq.getToggleEspKeyBinding().wasPressed()) {
+            KxVbNq.espEnabled = !KxVbNq.espEnabled;
+            KxVbNq.saveConfig();
+            AeKtQm.LOGGER.info("ESP toggled: {}", KxVbNq.espEnabled);
         }
 
-        if (FreecamController.isActive() && client.world == null) {
-            FreecamController.disable();
+        while (KxVbNq.getFreecamKeyBinding().wasPressed()) {
+            TmYpRc.toggle();
         }
 
-        FreecamController.tickMovement();
+        if (TmYpRc.isActive() && client.world == null) {
+            TmYpRc.disable();
+        }
 
-        if (EspSettings.espEnabled && EspSettings.wallModels && EspSettings.renderPlayers && client.world != null) {
+        TmYpRc.tickMovement();
+
+        if (KxVbNq.espEnabled && KxVbNq.wallModels && KxVbNq.renderPlayers && client.world != null) {
             revealInvisiblePlayers(client);
         }
 
-        if (EspSettings.storageEsp && client.world != null) {
+        if (KxVbNq.storageEsp && client.world != null) {
             if (++storageScanTimer >= STORAGE_SCAN_INTERVAL) {
                 storageScanTimer = 0;
                 rescanStorageEsp(client);
@@ -138,7 +138,7 @@ public class GGESPClient implements ClientModInitializer {
             cachedStorageEntries.clear();
         }
 
-        if (EspSettings.ancientDebrisEsp && client.world != null) {
+        if (KxVbNq.ancientDebrisEsp && client.world != null) {
             int chunkX = client.player.getBlockPos().getX() >> 4;
             int chunkZ = client.player.getBlockPos().getZ() >> 4;
             if (chunkX != debrisScanChunkX || chunkZ != debrisScanChunkZ || ++debrisScanTimer >= DEBRIS_SCAN_INTERVAL) {
@@ -167,7 +167,7 @@ public class GGESPClient implements ClientModInitializer {
 
     private void render(WorldRenderContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null || client.player == null || !EspSettings.espEnabled) {
+        if (client.world == null || client.player == null || !KxVbNq.espEnabled) {
             return;
         }
 
@@ -181,50 +181,50 @@ public class GGESPClient implements ClientModInitializer {
         double cameraY = camera.getPos().y;
         double cameraZ = camera.getPos().z;
         float tickDelta = client.getRenderTickCounter().getTickDelta(false);
-        boolean friendTracersEnabled = EspSettings.hasEnabledFriendTracers();
-        List<Entity> renderableEntities = (EspSettings.boxes || EspSettings.tracers || friendTracersEnabled)
+        boolean friendTracersEnabled = KxVbNq.hasEnabledFriendTracers();
+        List<Entity> renderableEntities = (KxVbNq.boxes || KxVbNq.tracers || friendTracersEnabled)
             ? getCachedRenderableEntities(client, camera.getPos())
             : List.of();
-        List<ItemEntity> renderableItems = EspSettings.itemEsp
+        List<ItemEntity> renderableItems = KxVbNq.itemEsp
             ? getCachedRenderableItems(client, camera.getPos())
             : List.of();
 
-        if (EspSettings.boxes && !renderableEntities.isEmpty()) {
-            if (EspSettings.filledBoxes) {
+        if (KxVbNq.boxes && !renderableEntities.isEmpty()) {
+            if (KxVbNq.filledBoxes) {
                 renderFilledBoxes(renderableEntities, matrices, cameraX, cameraY, cameraZ, tickDelta);
             }
 
             renderOutlineBoxes(renderableEntities, matrices, cameraX, cameraY, cameraZ, tickDelta);
         }
 
-        if ((EspSettings.tracers || friendTracersEnabled) && !renderableEntities.isEmpty()) {
+        if ((KxVbNq.tracers || friendTracersEnabled) && !renderableEntities.isEmpty()) {
             renderTracers(renderableEntities, matrices, camera, tickDelta);
         }
 
-        if (EspSettings.nametags && EspSettings.renderPlayers) {
+        if (KxVbNq.nametags && KxVbNq.renderPlayers) {
             renderNametags(client, matrices, context, cameraX, cameraY, cameraZ);
         }
 
-        if (EspSettings.storageEsp) {
+        if (KxVbNq.storageEsp) {
             renderStorageEsp(client, matrices, cameraX, cameraY, cameraZ);
         }
 
-        if (EspSettings.itemEsp && !renderableItems.isEmpty()) {
+        if (KxVbNq.itemEsp && !renderableItems.isEmpty()) {
             renderItemEsp(renderableItems, matrices, cameraX, cameraY, cameraZ, tickDelta);
         }
 
-        if (EspSettings.ancientDebrisEsp) {
+        if (KxVbNq.ancientDebrisEsp) {
             renderAncientDebrisEsp(client, matrices, cameraX, cameraY, cameraZ);
         }
 
-        if (EspSettings.ghostEsp) {
+        if (KxVbNq.ghostEsp) {
             renderGhosts(client, matrices, context, cameraX, cameraY, cameraZ);
         }
     }
 
     private void renderWallModelsPass(WorldRenderContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null || client.player == null || !EspSettings.espEnabled || !EspSettings.wallModels) {
+        if (client.world == null || client.player == null || !KxVbNq.espEnabled || !KxVbNq.wallModels) {
             return;
         }
         if (++wallModelFrameTimer < WALL_MODEL_FRAME_INTERVAL) {
@@ -258,7 +258,7 @@ public class GGESPClient implements ClientModInitializer {
 
         for (Entity entity : renderableEntities) {
             Box box = toCameraRelativeBox(entity, cameraX, cameraY, cameraZ, tickDelta);
-            drawFilledBoxFaces(matrices, buffer, box, EspSettings.red, EspSettings.green, EspSettings.blue, EspSettings.alpha * 0.2F);
+            drawFilledBoxFaces(matrices, buffer, box, KxVbNq.red, KxVbNq.green, KxVbNq.blue, KxVbNq.alpha * 0.2F);
         }
 
         RenderSystem.enableBlend();
@@ -343,7 +343,7 @@ public class GGESPClient implements ClientModInitializer {
 
         for (Entity entity : renderableEntities) {
             Box box = toCameraRelativeBox(entity, cameraX, cameraY, cameraZ, tickDelta);
-            drawCompleteOutlineBox(matrices, buffer, box, EspSettings.red, EspSettings.green, EspSettings.blue, EspSettings.alpha);
+            drawCompleteOutlineBox(matrices, buffer, box, KxVbNq.red, KxVbNq.green, KxVbNq.blue, KxVbNq.alpha);
         }
 
         RenderSystem.enableBlend();
@@ -386,20 +386,20 @@ public class GGESPClient implements ClientModInitializer {
 
         for (Entity entity : renderableEntities) {
             Vec3d entityPos = entity.getLerpedPos(tickDelta).add(0.0, entity.getHeight() / 2.0, 0.0);
-            float red = EspSettings.red;
-            float green = EspSettings.green;
-            float blue = EspSettings.blue;
-            boolean friend = entity instanceof AbstractClientPlayerEntity player && EspSettings.isFriend(player.getName().getString());
+            float red = KxVbNq.red;
+            float green = KxVbNq.green;
+            float blue = KxVbNq.blue;
+            boolean friend = entity instanceof AbstractClientPlayerEntity player && KxVbNq.isFriend(player.getName().getString());
             if (friend) {
                 String friendName = entity.getName().getString();
-                if (!EspSettings.areFriendTracersEnabled(friendName)) {
+                if (!KxVbNq.areFriendTracersEnabled(friendName)) {
                     continue;
                 }
 
-                red = EspSettings.getFriendTracerRed(friendName);
-                green = EspSettings.getFriendTracerGreen(friendName);
-                blue = EspSettings.getFriendTracerBlue(friendName);
-            } else if (!EspSettings.tracers) {
+                red = KxVbNq.getFriendTracerRed(friendName);
+                green = KxVbNq.getFriendTracerGreen(friendName);
+                blue = KxVbNq.getFriendTracerBlue(friendName);
+            } else if (!KxVbNq.tracers) {
                 continue;
             }
 
@@ -411,14 +411,14 @@ public class GGESPClient implements ClientModInitializer {
             float z2 = (float) (entityPos.z - cameraPos.z);
 
             buffer.vertex(posMatrix, x1, y1, z1)
-                .color(red, green, blue, EspSettings.alpha)
+                .color(red, green, blue, KxVbNq.alpha)
                 .normal(matrices.peek(), fnx, fny, fnz);
             buffer.vertex(posMatrix, x2, y2, z2)
-                .color(red, green, blue, EspSettings.alpha)
+                .color(red, green, blue, KxVbNq.alpha)
                 .normal(matrices.peek(), fnx, fny, fnz);
         }
 
-        RenderSystem.lineWidth((float) EspSettings.lineThickness);
+        RenderSystem.lineWidth((float) KxVbNq.lineThickness);
         try (BuiltBuffer builtBuffer = buffer.endNullable()) {
             if (builtBuffer != null) {
                 RenderLayer.getLines().draw(builtBuffer);
@@ -437,7 +437,7 @@ public class GGESPClient implements ClientModInitializer {
         float blue,
         float alpha
     ) {
-        drawCompleteOutlineBox(matrices, buffer, box, red, green, blue, alpha, EspSettings.lineThickness);
+        drawCompleteOutlineBox(matrices, buffer, box, red, green, blue, alpha, KxVbNq.lineThickness);
     }
 
     private void drawCompleteOutlineBox(
@@ -518,7 +518,7 @@ public class GGESPClient implements ClientModInitializer {
         );
         maxWallModelDistanceSq *= maxWallModelDistanceSq;
 
-        if (!EspSettings.renderPlayers) {
+        if (!KxVbNq.renderPlayers) {
             return;
         }
 
@@ -545,8 +545,8 @@ public class GGESPClient implements ClientModInitializer {
         dispatcher.setRenderShadows(false);
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
-        WallModelRenderState.setCustomLayersEnabled(true);
-        WallModelRenderState.begin();
+        HmDqSv.setCustomLayersEnabled(true);
+        HmDqSv.begin();
 
         try {
             for (AbstractClientPlayerEntity player : players) {
@@ -581,8 +581,8 @@ public class GGESPClient implements ClientModInitializer {
 
             consumers.draw();
         } finally {
-            WallModelRenderState.end();
-            WallModelRenderState.setCustomLayersEnabled(false);
+            HmDqSv.end();
+            HmDqSv.setCustomLayersEnabled(false);
             dispatcher.setRenderShadows(true);
             resetRenderState();
         }
@@ -625,7 +625,7 @@ public class GGESPClient implements ClientModInitializer {
 
         for (AbstractClientPlayerEntity player : client.world.getPlayers()) {
             if (player == client.player || player.isSpectator()) continue;
-            if (!EspSettings.renderPlayers) continue;
+            if (!KxVbNq.renderPlayers) continue;
 
             Vec3d pos = player.getPos();
             double dx = pos.x - cameraX;
@@ -711,10 +711,10 @@ public class GGESPClient implements ClientModInitializer {
                 pos.getZ() + 1 - cameraZ
             );
 
-            float red = EspSettings.storageUseTypeColors ? entry.red() : EspSettings.storageRed;
-            float green = EspSettings.storageUseTypeColors ? entry.green() : EspSettings.storageGreen;
-            float blue = EspSettings.storageUseTypeColors ? entry.blue() : EspSettings.storageBlue;
-            drawCompleteOutlineBox(matrices, buffer, box, red, green, blue, EspSettings.storageAlpha, EspSettings.storageLineThickness);
+            float red = KxVbNq.storageUseTypeColors ? entry.red() : KxVbNq.storageRed;
+            float green = KxVbNq.storageUseTypeColors ? entry.green() : KxVbNq.storageGreen;
+            float blue = KxVbNq.storageUseTypeColors ? entry.blue() : KxVbNq.storageBlue;
+            drawCompleteOutlineBox(matrices, buffer, box, red, green, blue, KxVbNq.storageAlpha, KxVbNq.storageLineThickness);
         }
 
         RenderSystem.enableBlend();
@@ -908,7 +908,7 @@ public class GGESPClient implements ClientModInitializer {
         double cameraY,
         double cameraZ
     ) {
-        Collection<GhostTracker.GhostPosition> ghosts = GhostTracker.getGhosts();
+        Collection<LpXrKt.GhostPosition> ghosts = LpXrKt.getGhosts();
         if (ghosts.isEmpty()) return;
 
         Tessellator tessellator = Tessellator.getInstance();
@@ -918,7 +918,7 @@ public class GGESPClient implements ClientModInitializer {
             RenderLayer.getLines().getVertexFormat()
         );
 
-        for (GhostTracker.GhostPosition ghost : ghosts) {
+        for (LpXrKt.GhostPosition ghost : ghosts) {
             float alpha = ghost.getAlpha();
             if (alpha <= 0) continue;
 
@@ -948,7 +948,7 @@ public class GGESPClient implements ClientModInitializer {
         VertexConsumerProvider.Immediate consumers = client.getBufferBuilders().getEntityVertexConsumers();
         boolean drewAny = false;
 
-        for (GhostTracker.GhostPosition ghost : ghosts) {
+        for (LpXrKt.GhostPosition ghost : ghosts) {
             float alpha = ghost.getAlpha();
             if (alpha <= 0) continue;
 
@@ -1001,7 +1001,7 @@ public class GGESPClient implements ClientModInitializer {
         entities.clear();
         double maxDistanceSq = MAX_ENTITY_ESP_DISTANCE * MAX_ENTITY_ESP_DISTANCE;
 
-        if (EspSettings.renderPlayers) {
+        if (KxVbNq.renderPlayers) {
             for (AbstractClientPlayerEntity player : client.world.getPlayers()) {
                 if (player == client.player || player.isSpectator()) {
                     continue;
@@ -1013,7 +1013,7 @@ public class GGESPClient implements ClientModInitializer {
             }
         }
 
-        if (EspSettings.renderMobs) {
+        if (KxVbNq.renderMobs) {
             for (Entity entity : client.world.getEntities()) {
                 if (!(entity instanceof MobEntity mob)) {
                     continue;

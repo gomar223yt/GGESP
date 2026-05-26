@@ -8,10 +8,10 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.Gomar223.ggesp.client.FreecamController;
+import org.Gomar223.ggesp.client.TmYpRc;
 
 @Mixin(Camera.class)
-public abstract class CameraMixin {
+public abstract class ByVrLs {
     @Shadow
     protected abstract void setPos(double x, double y, double z);
 
@@ -27,13 +27,13 @@ public abstract class CameraMixin {
         float tickDelta,
         CallbackInfo ci
     ) {
-        if (FreecamController.isActive()) {
+        if (TmYpRc.isActive()) {
             setPos(
-                FreecamController.getRenderX(tickDelta),
-                FreecamController.getRenderY(tickDelta),
-                FreecamController.getRenderZ(tickDelta)
+                TmYpRc.getRenderX(tickDelta),
+                TmYpRc.getRenderY(tickDelta),
+                TmYpRc.getRenderZ(tickDelta)
             );
-            setRotation(FreecamController.getYaw(), FreecamController.getPitch());
+            setRotation(TmYpRc.getYaw(), TmYpRc.getPitch());
         }
     }
 }

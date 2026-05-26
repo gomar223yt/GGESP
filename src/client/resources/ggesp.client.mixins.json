@@ -4,16 +4,16 @@
   "package": "org.Gomar223.ggesp.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "PlaySoundMixin",
-    "EquipmentUpdateMixin",
-    "ParticleMixin",
-    "LivingEntityRendererMixin",
-    "RenderLayerMixin",
-    "CameraMixin",
-    "FreecamPlayerMixin",
-    "FreecamEntityMixin",
-    "InGameOverlayRendererMixin",
-    "BackgroundRendererMixin"
+    "XgLoBf",
+    "PfJtMx",
+    "NaReTy",
+    "UlPcVd",
+    "CqIwUz",
+    "ByVrLs",
+    "OxNeHb",
+    "WdKuCe",
+    "GiSmRa",
+    "ZnAkQp"
   ],
   "injectors": {
     "defaultRequire": 1
